@@ -39,6 +39,12 @@ tidy:
 	go mod verify
 	go mod vendor
 
+## install/linters: install required linters
+.PHONY: install/linters
+install/linters:
+	@echo 'Installing staticcheck'
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+
 ## audit: run quality control checks
 .PHONY: audit
 audit:

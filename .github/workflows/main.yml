@@ -26,7 +26,7 @@ jobs:
           go-version: '1.23'
 
       - name: Run quality control checks
-        run: make audit
+        run: make install/linters && make audit
 
       - name: Build the cmd/api application
         run: make build/api
