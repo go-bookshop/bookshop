@@ -22,7 +22,7 @@ run/api:
 ## run/api/image: run the cmd/api application from bookshop docker image
 .PHONY: run/api/image
 run/api/image:
-	docker run -p 4000:4000 --rm -v ./.env:/.env bookshop
+	docker run -p 4000:4000 --rm -v ./.env:/.env ${DOCKER_HUB_USERNAME}/bookshop:latest
 
 # ==================================================================================== #
 # QUALITY CONTROL
@@ -66,4 +66,4 @@ build/api:
 .PHONY: build/api/image
 build/api/image:
 	@echo 'Building cmd/api image...'
-	docker build -t bookshop .
+	docker build -t ${DOCKER_HUB_USERNAME}/bookshop:latest .
