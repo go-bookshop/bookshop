@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"log/slog"
 	"net/http"
@@ -16,10 +17,11 @@ func main() {
 	mux := http.NewServeMux()
 
 	ping := func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ping has worked"))
+		name := r.PathValue("name")
+		fmt.Fprintf(w, "Thanks, %s, ping has worked", name)
 	}
 
-	mux.HandleFunc("GET /ping/{$}", ping)
+	mux.HandleFunc("GET /ping/{name}", ping)
 
 	srv := &http.Server{
 		Addr:         ":4000",
