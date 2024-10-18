@@ -18,7 +18,7 @@ func main() {
 
 	ping := func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
-		fmt.Fprintf(w, "Thanks, %s, ping has worked", name)
+		fmt.Fprintf(w, "Thanks, %s", name)
 	}
 
 	mux.HandleFunc("GET /ping/{name}", ping)

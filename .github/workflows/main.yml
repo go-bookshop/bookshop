@@ -1,4 +1,4 @@
-name: Build and Deploy app
+name: ci-pipeline
 
 on:
   push:
@@ -6,40 +6,76 @@ on:
   pull_request:
     branches: [ "master" ]
 
-jobs:
-  build-deploy:
-    name: Build and Deploy app
-    runs-on: ubuntu-24.04
+permissions:
+  contents: read
 
+jobs:
+  lint:
+    name: Run golangci-lint
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
-      - name: Create env file
-        run: |
-          touch .env
-          echo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} >> .env
-          cat .env
-
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
 
-      - name: Run quality control checks
-        run: make install/linters && make audit
+  test:
+    name: Run Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create env file
+        run: |
+          echo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} >> .env
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Run tests
+        run: make test
 
+  build:
+    name: Build App
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create env file
+        run: |
+          echo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} >> .env
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Checking module dependencies
+        run: make tidy/diff
       - name: Build the cmd/api application
         run: make build/api
-
       - name: Build the Docker image for cmd/api application
         run: make build/api/image
 
+  deploy:
+    name: Deploy App
+    runs-on: ubuntu-24.04
+    needs: [lint, test, build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create env file
+        run: |
+          echo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} >> .env
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
       - name: Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -47,3 +83,6 @@ jobs:
           dockerfile: Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/bookshop:latest
+      - name: Trigger Render deploy hook
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}

@@ -42,20 +42,34 @@ tidy:
 ## install/linters: install required linters
 .PHONY: install/linters
 install/linters:
-	@echo 'Installing staticcheck'
-	go install honnef.co/go/tools/cmd/staticcheck@latest
+	@echo 'Installing golangci-lint'
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
+
+## tidy/diff: run mod tidy -diff and mod verify
+.PHONY: tidy/diff
+tidy/diff:
+	@echo 'Checking module dependencies'
+	go mod tidy -diff
+	go mod verify
+
+## test: run test with -race
+.PHONY: test
+test:
+	@echo 'Running tests...'
+	go test -race -vet=off ./...
+
+## lint: run golangci-lint
+.PHONY: lint
+lint:
+	@echo 'Running linters with golangci-lint...'
+	golangci-lint run
 
 ## audit: run quality control checks
 .PHONY: audit
 audit:
-	@echo 'Checking module dependencies'
-	go mod tidy -diff
-	go mod verify
-	@echo 'Vetting code...'
-	go vet ./...
-	staticcheck ./...
-	@echo 'Running tests...'
-	go test -race -vet=off ./...
+	make -s tidy/diff
+	make -s lint
+	make -s test
 
 # ==================================================================================== #
 # BUILD
