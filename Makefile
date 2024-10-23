@@ -87,3 +87,25 @@ build/api:
 build/api/image:
 	@echo 'Building cmd/api image...'
 	docker build -t ${DOCKER_HUB_USERNAME}/bookshop:latest .
+
+# ==================================================================================== #
+# MIGRATIONS
+# ==================================================================================== #
+
+## migrate/up: apply all migrations
+.PHONY: migrate/up
+migrate/up:
+	@echo 'Applying migrations...'
+	migrate -path ./migrations -database '${DATABASE_URL}' up
+
+## migrate/down: rollback the last migration
+.PHONY: migrate/down
+migrate/down:
+	@echo 'Rolling back the last migration...'
+	migrate -path ./migrations -database '${DATABASE_URL}' down
+
+## migrate/reset: rollback all migrations
+.PHONY: migrate/reset
+migrate/reset:
+	@echo 'Rolling back all migrations...'
+	migrate -path ./migrations -database '${DATABASE_URL}' down --all
