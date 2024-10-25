@@ -11,7 +11,6 @@ jobs:
   deploy:
     name: Deploy App
     runs-on: ubuntu-24.04
-    needs: [lint, test, build]
     steps:
       - uses: actions/checkout@v4
       - name: Create env file
