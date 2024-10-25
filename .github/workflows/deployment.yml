@@ -27,10 +27,20 @@ jobs:
       - name: Build the Docker image for cmd/api application
         run: make build/api/image
 
+  migrate:
+    name: Migrate DB
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Migrate
+        run: curl -L https://github.com/golang-migrate/migrate/releases/download/v4.18.1/migrate.linux-amd64.tar.gz  | tar xvz
+      - name: Run migrations
+        run: ./migrate -path ./migrations -database '${{ secrets.DATABASE_URL }}' up
+
   deploy:
     name: Deploy App
     runs-on: ubuntu-24.04
-    needs: [build]
+    needs: [build, migrate]
     steps:
       - uses: actions/checkout@v4
       - name: Create env file
