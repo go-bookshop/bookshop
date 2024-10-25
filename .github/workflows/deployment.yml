@@ -8,10 +8,29 @@ permissions:
   contents: read
 
 jobs:
+  build:
+    name: Build App
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create env file
+        run: |
+          echo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} >> .env
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Checking module dependencies
+        run: make tidy/diff
+      - name: Build the cmd/api application
+        run: make build/api
+      - name: Build the Docker image for cmd/api application
+        run: make build/api/image
+
   deploy:
     name: Deploy App
     runs-on: ubuntu-24.04
-    needs: [lint, test, build]
+    needs: [build]
     steps:
       - uses: actions/checkout@v4
       - name: Create env file
