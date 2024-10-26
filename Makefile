@@ -19,6 +19,11 @@ help:
 run/api:
 	go run ./cmd/api
 
+## run/api/help: show cmd/api command-line arguments
+.PHONY: run/api/help
+run/api/help:
+	go run ./cmd/api -help
+
 ## run/api/image: run the cmd/api application from bookshop docker image
 .PHONY: run/api/image
 run/api/image:
