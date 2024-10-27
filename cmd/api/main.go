@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bookshop/internal/data"
+	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"log/slog"
 	"net/http"
@@ -16,28 +20,71 @@ type config struct {
 		level  string
 		format string
 	}
+	db struct {
+		maxConns    int
+		minConns    int
+		maxIdleTime time.Duration
+	}
 }
 
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
 	var cfg config
 	flag.StringVar(&cfg.log.level, "log-level", "info", "Logging level (debug|info|warning|error)")
 	flag.StringVar(&cfg.log.format, "log-format", "json", "Logging format (text|json)")
+
+	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 10, "Database max open connections")
+	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 2, "Database min idle connections")
+	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
+
 	flag.Parse()
+
+	logger := setupLogger(cfg)
+
+	dbpool, err := setupDbPool(cfg)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	logger.Info("successfully connected to the database")
 
 	app := &application{
 		config: cfg,
-		logger: setupLogger(cfg),
+		logger: logger,
+		models: data.NewModels(dbpool),
 	}
 
-	err := app.dummyListenAndServe()
+	err = app.dummyListenAndServe()
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func setupDbPool(cfg config) (*pgxpool.Pool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	poolCfg, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	poolCfg.MaxConns = int32(cfg.db.maxConns)
+	poolCfg.MinConns = int32(cfg.db.minConns)
+	poolCfg.MaxConnIdleTime = cfg.db.maxIdleTime
+
+	dbpool, err := pgxpool.NewWithConfig(ctx, poolCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	err = dbpool.Ping(ctx)
+	if err != nil {
+		return nil, errors.New("unable to connect to the database")
+	}
+
+	return dbpool, nil
 }
 
 func setupLogger(cfg config) *slog.Logger {
