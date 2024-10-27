@@ -73,9 +73,6 @@ func setupDbPool(cfg config) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-	poolCfg.MaxConns = int32(cfg.db.maxConns)
-	poolCfg.MinConns = int32(cfg.db.minConns)
-	poolCfg.MaxConnIdleTime = cfg.db.maxIdleTime
 
 	dbpool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
