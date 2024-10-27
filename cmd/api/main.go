@@ -70,6 +70,9 @@ func setupDbPool(cfg config) (*pgxpool.Pool, error) {
 	defer cancel()
 
 	poolCfg, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return nil, err
+	}
 	poolCfg.MaxConns = int32(cfg.db.maxConns)
 	poolCfg.MinConns = int32(cfg.db.minConns)
 	poolCfg.MaxConnIdleTime = cfg.db.maxIdleTime
