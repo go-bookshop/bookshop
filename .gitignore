@@ -1,1 +1,8 @@
+# Ignore environment variable files
 .env
+
+# Ignore local configuration files
+docker-compose.yaml
+
+# Ignore compiled binaries
+bin/
