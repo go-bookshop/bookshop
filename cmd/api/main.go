@@ -38,8 +38,8 @@ func main() {
 	flag.StringVar(&cfg.log.level, "log-level", "info", "Logging level (debug|info|warning|error)")
 	flag.StringVar(&cfg.log.format, "log-format", "json", "Logging format (text|json)")
 
-	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 10, "Database max open connections")
-	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 2, "Database min idle connections")
+	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 1, "Database max open connections")
+	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 1, "Database min idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
 
 	flag.Parse()
@@ -84,7 +84,7 @@ func setupDbPool(cfg config) (*pgxpool.Pool, error) {
 
 	err = dbpool.Ping(ctx)
 	if err != nil {
-		return nil, errors.New("unable to connect to the database")
+		return nil, errors.New(err.Error() + "unable to connect to the database")
 	}
 
 	return dbpool, nil
