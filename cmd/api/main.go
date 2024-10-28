@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 	"log/slog"
@@ -104,18 +103,9 @@ func setupLogger(cfg config) *slog.Logger {
 }
 
 func (app *application) dummyListenAndServe() error {
-	mux := http.NewServeMux()
-
-	ping := func(w http.ResponseWriter, r *http.Request) {
-		name := r.PathValue("name")
-		fmt.Fprintf(w, "Thanks, %s", name)
-	}
-
-	mux.HandleFunc("GET /ping/{name}", ping)
-
 	srv := &http.Server{
 		Addr:         ":4000",
-		Handler:      mux,
+		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

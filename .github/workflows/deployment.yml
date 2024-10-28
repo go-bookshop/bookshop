@@ -64,3 +64,9 @@ jobs:
       - name: Trigger Render deploy hook
         run: |
           curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      - name: URL Health Check
+        uses: Jtalk/url-health-check-action@v4
+        with:
+          url: https://bookshop-mzki.onrender.com/healthz
+          max-attempts: 5
+          retry-delay: 60s
