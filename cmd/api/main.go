@@ -5,13 +5,13 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/joho/godotenv/autoload"
 	"log/slog"
-	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type config struct {
@@ -33,15 +33,7 @@ type application struct {
 }
 
 func main() {
-	var cfg config
-	flag.StringVar(&cfg.log.level, "log-level", "info", "Logging level (debug|info|warning|error)")
-	flag.StringVar(&cfg.log.format, "log-format", "json", "Logging format (text|json)")
-
-	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 4, "Database max open connections")
-	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 1, "Database min idle connections")
-	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
-
-	flag.Parse()
+	cfg := parseConfig()
 
 	logger := setupLogger(cfg)
 
@@ -58,7 +50,7 @@ func main() {
 		models: data.NewModels(dbpool),
 	}
 
-	err = app.dummyListenAndServe()
+	err = app.run()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -72,6 +64,10 @@ func setupDbPool(cfg config) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	poolCfg.MaxConns = int32(cfg.db.maxConns)
+	poolCfg.MinConns = int32(cfg.db.minConns)
+	poolCfg.MaxConnIdleTime = cfg.db.maxIdleTime
 
 	dbpool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
@@ -102,15 +98,16 @@ func setupLogger(cfg config) *slog.Logger {
 	}
 }
 
-func (app *application) dummyListenAndServe() error {
-	srv := &http.Server{
-		Addr:         ":4000",
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-	}
+func parseConfig() config {
+	var cfg config
+	flag.StringVar(&cfg.log.level, "log-level", "info", "Logging level (debug|info|warning|error)")
+	flag.StringVar(&cfg.log.format, "log-format", "json", "Logging format (text|json)")
 
-	app.logger.Info("starting server", "addr", srv.Addr)
-	return srv.ListenAndServe()
+	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 4, "Database max open connections")
+	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 1, "Database min idle connections")
+	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
+
+	flag.Parse()
+
+	return cfg
 }
