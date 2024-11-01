@@ -1,5 +1,7 @@
 include .env
 
+MIGRATIONS_PATH=./migrations
+
 # ==================================================================================== #
 # HELPERS
 # ==================================================================================== #
@@ -97,20 +99,26 @@ build/api/image:
 # MIGRATIONS
 # ==================================================================================== #
 
+## migrate/create: create migration
+.PHONY: migrate/create
+migrate/create:
+	@echo 'Creating migration files...'
+	migrate create -seq -ext sql dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
+
 ## migrate/up: apply all migrations
 .PHONY: migrate/up
 migrate/up:
 	@echo 'Applying migrations...'
-	migrate -path ./migrations -database '${DATABASE_URL}' up
+	migrate -path ${MIGRATIONS_PATH} -database '${DATABASE_URL}' up
 
 ## migrate/down: rollback the last migration
 .PHONY: migrate/down
 migrate/down:
 	@echo 'Rolling back the last migration...'
-	migrate -path ./migrations -database '${DATABASE_URL}' down
+	migrate -path ${MIGRATIONS_PATH} -database '${DATABASE_URL}' down
 
 ## migrate/reset: rollback all migrations
 .PHONY: migrate/reset
 migrate/reset:
 	@echo 'Rolling back all migrations...'
-	migrate -path ./migrations -database '${DATABASE_URL}' down --all
+	migrate -path ${MIGRATIONS_PATH} -database '${DATABASE_URL}' down --all
