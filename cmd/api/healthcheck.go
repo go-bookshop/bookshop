@@ -1,10 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"bookshop/internal/utils"
 	"net/http"
 )
 
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "OK")
+	err := utils.WriteJSON(w, http.StatusOK, "OK", nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
