@@ -11,7 +11,9 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 		logError(app.logger, "Failed to write response", r.Method, r.URL.String(), err)
 
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to write response"))
+
+		fallbackResponse := `{"message": "The server encountered an error and could not process your request"}`
+		_, _ = w.Write([]byte(fallbackResponse))
 	}
 }
 
