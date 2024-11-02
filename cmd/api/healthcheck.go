@@ -1,12 +1,16 @@
 package main
 
 import (
-	"bookshop/internal/utils"
+	"bookshop/internal/httputil"
 	"net/http"
 )
 
+type healthCheckReponse struct {
+	Status string `json:"status"`
+}
+
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	err := utils.WriteJSON(w, http.StatusOK, "OK", nil)
+	err := httputil.WriteJSON(w, http.StatusOK, "", healthCheckReponse{Status: "ok"}, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
