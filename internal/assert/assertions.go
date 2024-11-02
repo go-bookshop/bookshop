@@ -1,9 +1,24 @@
 package assert
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
+
+func Equal[T comparable](t *testing.T, got, want T) {
+	t.Helper()
+	if got != want {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func Contains(t *testing.T, got, want string) {
+	t.Helper()
+	if !strings.Contains(got, want) {
+		t.Errorf("%q should contain %q", got, want)
+	}
+}
 
 func NoError(t *testing.T, err error) {
 	t.Helper()

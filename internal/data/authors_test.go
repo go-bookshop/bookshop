@@ -10,7 +10,7 @@ import (
 
 type AuthorRepoTestSuite struct {
 	pgContainer *PostgresContainer
-	repository  *AuthorRepository
+	repository  AuthorRepositoryInterface
 	ctx         context.Context
 }
 
@@ -26,7 +26,7 @@ func (s *AuthorRepoTestSuite) Setup(t *testing.T) {
 	pool, err := pgxpool.New(s.ctx, pgContainer.ConnectionString)
 	assert.NoError(t, err)
 
-	s.repository = &AuthorRepository{DBPool: pool}
+	s.repository = NewAuthorRepository(pool)
 }
 
 func (s *AuthorRepoTestSuite) TearDown(t *testing.T) {

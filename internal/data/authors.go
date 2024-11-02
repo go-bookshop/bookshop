@@ -9,6 +9,14 @@ import (
 	"time"
 )
 
+type AuthorRepositoryInterface interface {
+	Insert(a *Author) error
+}
+
+func NewAuthorRepository(DBPool *pgxpool.Pool) AuthorRepositoryInterface {
+	return &AuthorRepository{DBPool: DBPool}
+}
+
 type Author struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
@@ -29,7 +37,7 @@ type AuthorRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (m *AuthorRepository) Insert(a *Author) error {
+func (r *AuthorRepository) Insert(a *Author) error {
 	query := `
 insert into authors(name, bio)
 values ($1, $2)
@@ -38,7 +46,7 @@ returning id, created_at, updated_at;`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DBPool.QueryRow(ctx, query, a.Name, a.Bio).Scan(&a.ID, &a.CreatedAt, &a.UpdatedAt)
+	err := r.DBPool.QueryRow(ctx, query, a.Name, a.Bio).Scan(&a.ID, &a.CreatedAt, &a.UpdatedAt)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {

@@ -5,11 +5,11 @@ import (
 )
 
 type Repositories struct {
-	AuthorRepository *AuthorRepository
+	AuthorRepository AuthorRepositoryInterface
 }
 
 func NewRepositories(dbpool *pgxpool.Pool) Repositories {
 	return Repositories{
-		AuthorRepository: &AuthorRepository{DBPool: dbpool},
+		AuthorRepository: NewAuthorRepository(dbpool),
 	}
 }
