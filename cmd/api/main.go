@@ -27,9 +27,9 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *slog.Logger
-	models data.Models
+	config       config
+	logger       *slog.Logger
+	repositories data.Repositories
 }
 
 func main() {
@@ -45,9 +45,9 @@ func main() {
 	logger.Info("successfully connected to the database")
 
 	app := &application{
-		config: cfg,
-		logger: logger,
-		models: data.NewModels(dbpool),
+		config:       cfg,
+		logger:       logger,
+		repositories: data.NewRepositories(dbpool),
 	}
 
 	err = app.run()

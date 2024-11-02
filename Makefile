@@ -59,11 +59,17 @@ tidy/diff:
 	go mod tidy -diff
 	go mod verify
 
-## test: run test with -race
+## test: run all test with -race
 .PHONY: test
 test:
-	@echo 'Running tests...'
+	@echo 'Running all tests...'
 	go test -race -vet=off ./...
+
+## test/short: run unit tests only
+.PHONY: test/short
+test/short:
+	@echo 'Running unit tests...'
+	go test -short -v ./...
 
 ## lint: run golangci-lint
 .PHONY: lint
