@@ -6,9 +6,9 @@ import (
 	"net/http"
 )
 
-func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message string) {
-	if err := httputil.WriteJSON[any](w, status, message, nil, nil); err != nil {
-		logError(app.logger, "Failed to write response", r.Method, r.URL.String(), err)
+func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
+	if err := httputil.WriteJSON(w, status, message, nil); err != nil {
+		app.logError("Failed to write response", r.Method, r.URL.String(), err)
 
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -17,19 +17,33 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 	}
 }
 
-func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	msg := "Internal server error"
-
-	logError(app.logger, msg, r.Method, r.URL.String(), err)
-
-	app.errorResponse(w, r, http.StatusInternalServerError, msg)
+type errorResponse struct {
+	ErrMsg string `json:"errMsg"`
 }
 
-func logError(logger *slog.Logger, msg, reqMethod, reqURL string, err error) {
-	logger.Error(
+func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	msg := "Internal server error"
+	app.logError(msg, r.Method, r.URL.String(), err)
+	app.errorResponse(w, r, http.StatusInternalServerError, errorResponse{msg})
+}
+
+func (app *application) logError(msg, reqMethod, reqURL string, err error) {
+	app.logger.Error(
 		msg,
 		slog.String("method", reqMethod),
 		slog.String("path", reqURL),
 		slog.String("error", err.Error()),
 	)
+}
+
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.errorResponse(w, r, http.StatusBadRequest, errorResponse{err.Error()})
+}
+
+type validationResponse struct {
+	Errors map[string]string `json:"errors"`
+}
+
+func (app *application) validationErrorResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, validationResponse{Errors: errors})
 }
