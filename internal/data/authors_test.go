@@ -1,7 +1,9 @@
 package data
 
 import (
+	"bookshop/internal/assert"
 	"context"
+	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"testing"
 )
@@ -22,7 +24,7 @@ func (s *AuthorRepoTestSuite) Setup(t *testing.T) {
 	s.pgContainer = pgContainer
 
 	pool, err := pgxpool.New(s.ctx, pgContainer.ConnectionString)
-	assertNoError(t, err)
+	assert.NoError(t, err)
 
 	s.repository = &AuthorRepository{DBPool: pool}
 }
@@ -39,15 +41,14 @@ func (s *AuthorRepoTestSuite) TestAuthorRepository_Insert(t *testing.T) {
 		Bio:  "Born in Kyiv in 1913",
 	}
 	err := s.repository.Insert(&author)
-	assertNoError(t, err)
-	if author.ID == 0 {
-		t.Error("id has not been set from db after author creation")
-	}
-	if author.CreatedAt.IsZero() {
-		t.Error("createdAt has not been set from db after author creation")
-	}
-	if author.UpdatedAt.IsZero() {
-		t.Error("createdAt has not been set from db after author creation")
+	assert.NoError(t, err)
+	assert.NonZero(t, author.ID, "id")
+	assert.NonZero(t, author.CreatedAt, "createdAt")
+	assert.NonZero(t, author.CreatedAt, "updatedAt")
+
+	err = s.repository.Insert(&author)
+	if !errors.Is(err, ErrDuplicateAuthorName) {
+		t.Errorf("should return %q error on Insert with duplicate name", ErrDuplicateAuthorName)
 	}
 }
 
@@ -60,11 +61,4 @@ func TestAuthorRepoTestSuite(t *testing.T) {
 	defer s.TearDown(t)
 
 	t.Run("TestAuthorRepository_Insert", s.TestAuthorRepository_Insert)
-}
-
-func assertNoError(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Errorf("received unexpected error, %v", err)
-	}
 }
