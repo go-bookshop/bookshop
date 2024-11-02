@@ -5,8 +5,11 @@ import (
 )
 
 type Models struct {
+	AuthorModel *AuthorModel
 }
 
 func NewModels(dbpool *pgxpool.Pool) Models {
-	return Models{}
+	return Models{
+		AuthorModel: &AuthorModel{DBPool: dbpool},
+	}
 }

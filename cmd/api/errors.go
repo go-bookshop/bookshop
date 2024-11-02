@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message string) {
+func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	if err := utils.WriteJSON(w, status, message, nil); err != nil {
 		app.logger.Error(
 			"Failed to write response",
@@ -29,4 +29,16 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 	)
 
 	app.errorResponse(w, r, http.StatusInternalServerError, msg)
+}
+
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+
+type validationErrors struct {
+	Errors map[string]string `json:"errors"`
+}
+
+func (app *application) validationErrorResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, validationErrors{Errors: errors})
 }
