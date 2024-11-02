@@ -40,16 +40,20 @@ func (s *AuthorRepoTestSuite) TestAuthorRepository_Insert(t *testing.T) {
 		Name: "Evhen Petrenko",
 		Bio:  "Born in Kyiv in 1913",
 	}
-	err := s.repository.Insert(&author)
-	assert.NoError(t, err)
-	assert.NonZero(t, author.ID, "id")
-	assert.NonZero(t, author.CreatedAt, "createdAt")
-	assert.NonZero(t, author.CreatedAt, "updatedAt")
+	t.Run("New Author", func(t *testing.T) {
+		err := s.repository.Insert(&author)
+		assert.NoError(t, err)
+		assert.NonZero(t, author.ID, "id")
+		assert.NonZero(t, author.CreatedAt, "createdAt")
+		assert.NonZero(t, author.CreatedAt, "updatedAt")
+	})
 
-	err = s.repository.Insert(&author)
-	if !errors.Is(err, ErrDuplicateAuthorName) {
-		t.Errorf("should return %q error on Insert with duplicate name", ErrDuplicateAuthorName)
-	}
+	t.Run("Duplicate Author", func(t *testing.T) {
+		err := s.repository.Insert(&author)
+		if !errors.Is(err, ErrDuplicateAuthorName) {
+			t.Errorf("should return %q error on Insert with duplicate name", ErrDuplicateAuthorName)
+		}
+	})
 }
 
 func TestAuthorRepoTestSuite(t *testing.T) {
