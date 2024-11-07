@@ -14,8 +14,6 @@ type AuthorRepository struct {
 
 func (r *AuthorRepository) Insert(a *data.Author) error {
 	switch a.Name {
-	case "Duplicate":
-		return data.ErrDuplicateAuthorName
 	case "Unexpected":
 		return errors.New("empty")
 	}

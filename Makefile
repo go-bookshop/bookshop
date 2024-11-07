@@ -109,7 +109,7 @@ build/api/image:
 .PHONY: migrate/create
 migrate/create:
 	@echo 'Creating migration files...'
-	migrate create -seq -ext sql dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
+	migrate create -seq -ext sql -dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
 
 ## migrate/up: apply all migrations
 .PHONY: migrate/up
@@ -122,9 +122,3 @@ migrate/up:
 migrate/down:
 	@echo 'Rolling back the last migration...'
 	migrate -path ${MIGRATIONS_PATH} -database '${DATABASE_URL}' down
-
-## migrate/reset: rollback all migrations
-.PHONY: migrate/reset
-migrate/reset:
-	@echo 'Rolling back all migrations...'
-	migrate -path ${MIGRATIONS_PATH} -database '${DATABASE_URL}' down --all
