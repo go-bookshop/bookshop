@@ -36,6 +36,8 @@ jobs:
           go-version: '1.23'
       - name: Run tests
         run: make test
+      - name: KILL migrations
+        run: ./migrate -path ./migrations -database '${{ secrets.DATABASE_URL }}' down --all
 
   build:
     name: Build App
