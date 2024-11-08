@@ -9,5 +9,8 @@ func (app *application) routes() http.Handler {
 
 	mux.HandleFunc("POST /v1/authors", app.createAuthorHandler)
 
+	mux.HandleFunc("GET /v1/doc/", app.openAPISpecHandler)
+	mux.HandleFunc("GET /v1/doc/ui", app.redocHandler)
+
 	return mux
 }

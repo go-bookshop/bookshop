@@ -42,3 +42,17 @@ func NonZero(t *testing.T, value any, key string) {
 		t.Fatal("type is not present in NonZero switch, add it")
 	}
 }
+
+func NotNil(t *testing.T, ptr any) {
+	t.Helper()
+	if ptr == nil {
+		t.Errorf("expected not to be nil")
+	}
+}
+
+func True(t *testing.T, b bool) {
+	t.Helper()
+	if !b {
+		t.Errorf("expected to be true")
+	}
+}

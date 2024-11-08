@@ -13,8 +13,12 @@ import (
 )
 
 func newTestApplication() *application {
+	cfg := config{}
+	json := []byte(`{"openapi":"test"}`)
+	cfg.doc.json = &json
+
 	return &application{
-		config:       config{},
+		config:       cfg,
 		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 		repositories: newMockRepositories(),
 	}
