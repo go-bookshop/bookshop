@@ -2,6 +2,7 @@ package main
 
 import (
 	"bookshop/internal/data"
+	"bookshop/internal/doc"
 	"context"
 	"errors"
 	"flag"
@@ -24,6 +25,9 @@ type config struct {
 		minConns    int
 		maxIdleTime time.Duration
 	}
+	doc struct {
+		json *[]byte
+	}
 }
 
 type application struct {
@@ -34,15 +38,19 @@ type application struct {
 
 func main() {
 	cfg := parseConfig()
-
 	logger := setupLogger(cfg)
-
 	dbpool, err := setupDbPool(cfg)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
 	logger.Info("successfully connected to the database")
+
+	json, err := doc.GenerateOpenAPISpec().RenderJSON("  ")
+	if err != nil {
+		logger.Error("cannot render generated spec")
+	}
+	cfg.doc.json = &json
 
 	app := &application{
 		config:       cfg,
