@@ -42,13 +42,6 @@ func TestAuthors(t *testing.T) {
 			requestBody: `{"bio":"Born today"}`,
 		},
 		{
-			name:        "Duplicate Author",
-			endpoint:    "/v1/authors",
-			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    "already exists",
-			requestBody: `{"name":"Duplicate","bio":"Born today"}`,
-		},
-		{
 			name:        "Unexpected error from DbPool",
 			endpoint:    "/v1/authors",
 			wantCode:    http.StatusInternalServerError,

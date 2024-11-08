@@ -1,0 +1,11 @@
+BEGIN;
+
+DROP TABLE IF EXISTS book_properties;
+
+DROP INDEX IF EXISTS idx_properties_book_id;
+DROP INDEX IF EXISTS idx_properties_book_format;
+
+DROP TYPE BOOK_FORMAT;
+DROP TYPE BOOK_AVAILABILITY;
+
+COMMIT;

@@ -3,9 +3,9 @@ package data
 import (
 	"bookshop/internal/assert"
 	"context"
-	"errors"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"testing"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthorRepoTestSuite struct {
@@ -46,13 +46,6 @@ func (s *AuthorRepoTestSuite) TestAuthorRepository_Insert(t *testing.T) {
 		assert.NonZero(t, author.ID, "id")
 		assert.NonZero(t, author.CreatedAt, "createdAt")
 		assert.NonZero(t, author.CreatedAt, "updatedAt")
-	})
-
-	t.Run("Duplicate Author", func(t *testing.T) {
-		err := s.repository.Insert(&author)
-		if !errors.Is(err, ErrDuplicateAuthorName) {
-			t.Errorf("should return %q error on Insert with duplicate name", ErrDuplicateAuthorName)
-		}
 	})
 }
 

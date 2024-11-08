@@ -4,7 +4,6 @@ import (
 	"bookshop/internal/data"
 	"bookshop/internal/httputil"
 	"bookshop/internal/validator"
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -33,13 +32,7 @@ func (app *application) createAuthorHandler(w http.ResponseWriter, r *http.Reque
 
 	err = app.repositories.AuthorRepository.Insert(author)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrDuplicateAuthorName):
-			v.AddError("name", fmt.Sprintf("author with the name %q already exists", author.Name))
-			app.validationErrorResponse(w, r, v.Errors)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
