@@ -9,6 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	AuthorNameMaxLength = 1000
+	AuthorBioMaxLength  = 2000
+)
+
 type AuthorRepositoryInterface interface {
 	Insert(a *Author) error
 }
@@ -27,10 +32,10 @@ type Author struct {
 
 func ValidateAuthor(v *validator.Validator, a *Author) {
 	v.Check(strings.TrimSpace(a.Name) != "", "name", "must be provided")
-	v.Check(len(a.Name) <= 1000, "name", "must be less than 1000 bytes long")
+	v.Check(len(a.Name) <= AuthorNameMaxLength, "name", "must be less than 1000 bytes long")
 
 	v.Check(strings.TrimSpace(a.Bio) != "", "bio", "must be provided")
-	v.Check(len(a.Bio) <= 2000, "bio", "must be less than 2000 bytes long")
+	v.Check(len(a.Bio) <= AuthorNameMaxLength, "bio", "must be less than 2000 bytes long")
 }
 
 type AuthorRepository struct {

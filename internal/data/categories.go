@@ -11,6 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+const (
+	CategoryNameMaxLength        int = 100
+	CategoryDescriptionMaxLength int = 1000
+)
+
 type CategoriesRepositoryInterface interface {
 	Insert(bc *Category) error
 }
@@ -29,10 +34,10 @@ type Category struct {
 
 func ValidateCategory(v *validator.Validator, c *Category) {
 	v.Check(strings.TrimSpace(c.Name) != "", "name", "must be provided")
-	v.Check(len(c.Name) <= 100, "name", "must be less than 100 bytes long")
+	v.Check(len(c.Name) <= CategoryNameMaxLength, "name", "must be less than 100 bytes long")
 
 	v.Check(strings.TrimSpace(c.Description) != "", "description", "must be provided")
-	v.Check(len(c.Description) <= 1000, "description", "must be less than 1000 bytes long")
+	v.Check(len(c.Description) <= CategoryDescriptionMaxLength, "description", "must be less than 1000 bytes long")
 }
 
 type CategoriesRepository struct {
