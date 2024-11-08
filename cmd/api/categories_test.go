@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestAuthors(t *testing.T) {
+func TestCategories(t *testing.T) {
 	app := newTestApplication()
 	ts := newTestServer(app.routes())
 	defer ts.Close()
@@ -21,39 +21,46 @@ func TestAuthors(t *testing.T) {
 	}{
 		{
 			name:         "Valid request",
-			endpoint:     "/v1/authors",
+			endpoint:     "/v1/books/categories",
 			wantCode:     http.StatusCreated,
-			wantBody:     `{"id":999,"name":"Igor Olympic","bio":"Born today"}`,
-			wantLocation: "/v1/authors/999",
-			requestBody:  `{"name":"Igor Olympic","bio":"Born today"}`,
+			wantBody:     `{"id":999,"name":"Epic Adventures","description":"Explore tales of heroism."}`,
+			wantLocation: "/v1/books/categories",
+			requestBody:  `{"name":"Epic Adventures","description":"Explore tales of heroism."}`,
 		},
 		{
 			name:        "Invalid JSON",
-			endpoint:    "/v1/authors",
+			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusBadRequest,
 			wantBody:    "body contains badly-formed JSON",
 			requestBody: "invalid",
 		},
 		{
-			name:        "Invalid Author",
-			endpoint:    "/v1/authors",
+			name:        "Invalid Category",
+			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusUnprocessableEntity,
 			wantBody:    "must be provided",
-			requestBody: `{"bio":"Born today"}`,
+			requestBody: `{"description":"Explore tales of heroism."}`,
 		},
 		{
-			name:        "Invalid Author Whitespace",
-			endpoint:    "/v1/authors",
+			name:        "Invalid Category Whitespace",
+			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusUnprocessableEntity,
 			wantBody:    "must be provided",
-			requestBody: `{"name": " ", "bio":"Born today"}`,
+			requestBody: `{"name": " ", "description":" "}`,
+		},
+		{
+			name:        "Duplicate Category",
+			endpoint:    "/v1/books/categories",
+			wantCode:    http.StatusUnprocessableEntity,
+			wantBody:    "already exists",
+			requestBody: `{"name":"Duplicate","description":"Explore tales of heroism."}`,
 		},
 		{
 			name:        "Unexpected error from DbPool",
-			endpoint:    "/v1/authors",
+			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusInternalServerError,
 			wantBody:    "Internal server error",
-			requestBody: `{"name":"Unexpected","bio":"Born today"}`,
+			requestBody: `{"name":"Unexpected","description":"Explore tales of heroism."}`,
 		},
 	}
 

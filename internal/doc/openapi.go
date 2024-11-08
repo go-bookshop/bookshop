@@ -1,10 +1,11 @@
 package doc
 
 import (
+	"strings"
+
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
-	"strings"
 )
 
 type Document struct {
@@ -114,5 +115,6 @@ func (s *Schema) AddProperty(name, propType, desc string, required bool) {
 func GenerateOpenAPISpec() *v3.Document {
 	d := NewDocument()
 	d.AddPathItem("post", "/v1/authors", createAuthorOperation())
+	d.AddPathItem("post", "/v1/books/categories", createCategoryOperation())
 	return &d.Document
 }

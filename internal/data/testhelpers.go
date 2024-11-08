@@ -2,11 +2,12 @@ package data
 
 import (
 	"context"
+	"path/filepath"
+	"time"
+
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"path/filepath"
-	"time"
 )
 
 type PostgresContainer struct {
@@ -17,7 +18,10 @@ type PostgresContainer struct {
 func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16.4-alpine",
-		postgres.WithInitScripts(filepath.Join("../..", "testdata", "init-db-authors.sql")),
+		postgres.WithInitScripts(
+			filepath.Join("../..", "testdata", "init-db-authors.sql"),
+			filepath.Join("../..", "testdata", "init-db-categories.sql"),
+		),
 		postgres.WithDatabase("test-db"),
 		postgres.WithUsername("postgres"),
 		postgres.WithPassword("postgres"),
