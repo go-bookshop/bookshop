@@ -50,6 +50,7 @@ func (s *CategoriesRepoTestSuite) TestCategoriesRepository_Insert(t *testing.T) 
 	})
 
 	t.Run("Duplicate Category", func(t *testing.T) {
+		category.Name = "Duplicate"
 		err := s.repository.Insert(&category)
 		if !errors.Is(err, ErrDuplicateItem) {
 			t.Errorf("should return %q error on Insert with duplicate name", ErrDuplicateItem)
