@@ -5,11 +5,13 @@ import (
 )
 
 type Repositories struct {
-	AuthorRepository AuthorRepositoryInterface
+	AuthorRepository   AuthorRepositoryInterface
+	CategoryRepository CategoryRepositoryInterface
 }
 
 func NewRepositories(dbpool *pgxpool.Pool) Repositories {
 	return Repositories{
-		AuthorRepository: NewAuthorRepository(dbpool),
+		AuthorRepository:   NewAuthorRepository(dbpool),
+		CategoryRepository: NewCategoryRepository(dbpool),
 	}
 }
