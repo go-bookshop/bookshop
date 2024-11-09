@@ -5,14 +5,14 @@ import (
 	"errors"
 )
 
-func NewCategoriesRepository() data.CategoriesRepositoryInterface {
-	return &CategoriesRepository{}
+func NewCategoryRepository() data.CategoryRepositoryInterface {
+	return &CategoryRepository{}
 }
 
-type CategoriesRepository struct {
+type CategoryRepository struct {
 }
 
-func (r *CategoriesRepository) Insert(c *data.Category) error {
+func (r *CategoryRepository) Insert(c *data.Category) error {
 	switch c.Name {
 	case "Duplicate":
 		return data.ErrDuplicateItem

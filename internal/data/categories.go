@@ -4,6 +4,7 @@ import (
 	"bookshop/internal/validator"
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,12 +17,12 @@ const (
 	CategoryDescriptionMaxLength int = 1000
 )
 
-type CategoriesRepositoryInterface interface {
+type CategoryRepositoryInterface interface {
 	Insert(c *Category) error
 }
 
-func NewCategoriesRepository(DBPool *pgxpool.Pool) CategoriesRepositoryInterface {
-	return &CategoriesRepository{DBPool: DBPool}
+func NewCategoryRepository(DBPool *pgxpool.Pool) CategoryRepositoryInterface {
+	return &CategoryRepository{DBPool: DBPool}
 }
 
 type Category struct {
@@ -34,17 +35,17 @@ type Category struct {
 
 func ValidateCategory(v *validator.Validator, c *Category) {
 	v.Check(strings.TrimSpace(c.Name) != "", "name", "must be provided")
-	v.Check(len(c.Name) <= CategoryNameMaxLength, "name", "must be less than 100 bytes long")
+	v.Check(len(c.Name) <= CategoryNameMaxLength, "name", fmt.Sprintf("must be less than %d bytes long", CategoryNameMaxLength))
 
 	v.Check(strings.TrimSpace(c.Description) != "", "description", "must be provided")
-	v.Check(len(c.Description) <= CategoryDescriptionMaxLength, "description", "must be less than 1000 bytes long")
+	v.Check(len(c.Description) <= CategoryDescriptionMaxLength, "description", fmt.Sprintf("must be less than %d bytes long", CategoryDescriptionMaxLength))
 }
 
-type CategoriesRepository struct {
+type CategoryRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (r *CategoriesRepository) Insert(c *Category) error {
+func (r *CategoryRepository) Insert(c *Category) error {
 	query := `
 insert into categories(name, description)
 values ($1, $2)

@@ -9,13 +9,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type CategoriesRepoTestSuite struct {
+type CategoryRepoTestSuite struct {
 	pgContainer *PostgresContainer
-	repository  CategoriesRepositoryInterface
+	repository  CategoryRepositoryInterface
 	ctx         context.Context
 }
 
-func (s *CategoriesRepoTestSuite) Setup(t *testing.T) {
+func (s *CategoryRepoTestSuite) Setup(t *testing.T) {
 	s.ctx = context.Background()
 
 	pgContainer, err := CreatePostgresContainer(s.ctx)
@@ -27,16 +27,16 @@ func (s *CategoriesRepoTestSuite) Setup(t *testing.T) {
 	pool, err := pgxpool.New(s.ctx, pgContainer.ConnectionString)
 	assert.NoError(t, err)
 
-	s.repository = NewCategoriesRepository(pool)
+	s.repository = NewCategoryRepository(pool)
 }
 
-func (s *CategoriesRepoTestSuite) TearDown(t *testing.T) {
+func (s *CategoryRepoTestSuite) TearDown(t *testing.T) {
 	if err := s.pgContainer.Terminate(s.ctx); err != nil {
 		t.Fatalf("failed to terminate postgres container: %v", err)
 	}
 }
 
-func (s *CategoriesRepoTestSuite) TestCategoriesRepository_Insert(t *testing.T) {
+func (s *CategoryRepoTestSuite) TestCategoryRepository_Insert(t *testing.T) {
 	category := Category{
 		Name:        "Epic Adventures",
 		Description: "Explore tales of heroism.",
@@ -57,13 +57,13 @@ func (s *CategoriesRepoTestSuite) TestCategoriesRepository_Insert(t *testing.T) 
 	})
 }
 
-func TestCategoriesRepoTestSuite(t *testing.T) {
+func TestCategoryRepoTestSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("repositories: skipping integration test")
 	}
-	s := &CategoriesRepoTestSuite{}
+	s := &CategoryRepoTestSuite{}
 	s.Setup(t)
 	defer s.TearDown(t)
 
-	t.Run("TestCategoriesRepository_Insert", s.TestCategoriesRepository_Insert)
+	t.Run("TestCategoriesRepository_Insert", s.TestCategoryRepository_Insert)
 }

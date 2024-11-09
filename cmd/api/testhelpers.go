@@ -26,8 +26,8 @@ func newTestApplication() *application {
 
 func newMockRepositories() data.Repositories {
 	return data.Repositories{
-		AuthorRepository:     mock.NewAuthorRepository(),
-		CategoriesRepository: mock.NewCategoriesRepository(),
+		AuthorRepository:   mock.NewAuthorRepository(),
+		CategoryRepository: mock.NewCategoryRepository(),
 	}
 }
 

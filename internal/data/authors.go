@@ -3,6 +3,7 @@ package data
 import (
 	"bookshop/internal/validator"
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -32,10 +33,10 @@ type Author struct {
 
 func ValidateAuthor(v *validator.Validator, a *Author) {
 	v.Check(strings.TrimSpace(a.Name) != "", "name", "must be provided")
-	v.Check(len(a.Name) <= AuthorNameMaxLength, "name", "must be less than 1000 bytes long")
+	v.Check(len(a.Name) <= AuthorNameMaxLength, "name", fmt.Sprintf("must be less than %d bytes long", AuthorNameMaxLength))
 
 	v.Check(strings.TrimSpace(a.Bio) != "", "bio", "must be provided")
-	v.Check(len(a.Bio) <= AuthorNameMaxLength, "bio", "must be less than 2000 bytes long")
+	v.Check(len(a.Bio) <= AuthorNameMaxLength, "bio", fmt.Sprintf("must be less than %d bytes long", AuthorBioMaxLength))
 }
 
 type AuthorRepository struct {

@@ -27,7 +27,7 @@ func TestCategories(t *testing.T) {
 			endpoint:     "/v1/books/categories",
 			wantCode:     http.StatusCreated,
 			wantBody:     `{"id":999,"name":"Epic Adventures","description":"Explore tales of heroism."}`,
-			wantLocation: "/v1/books/categories",
+			wantLocation: "/v1/books/categories/999",
 			requestBody:  `{"name":"Epic Adventures","description":"Explore tales of heroism."}`,
 		},
 		{

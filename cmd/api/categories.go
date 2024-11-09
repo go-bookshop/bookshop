@@ -32,7 +32,7 @@ func (app *application) createBooksCategoryHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
-	err = app.repositories.CategoriesRepository.Insert(category)
+	err = app.repositories.CategoryRepository.Insert(category)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateItem):
@@ -45,7 +45,7 @@ func (app *application) createBooksCategoryHandler(w http.ResponseWriter, r *htt
 	}
 
 	headers := make(http.Header)
-	headers.Set("Location", "/v1/books/categories")
+	headers.Set("Location", fmt.Sprintf("/v1/books/categories/%d", category.ID))
 
 	err = httputil.WriteJSON(w, http.StatusCreated, category, headers)
 	if err != nil {
