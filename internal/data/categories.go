@@ -17,7 +17,7 @@ const (
 )
 
 type CategoriesRepositoryInterface interface {
-	Insert(bc *Category) error
+	Insert(c *Category) error
 }
 
 func NewCategoriesRepository(DBPool *pgxpool.Pool) CategoriesRepositoryInterface {
