@@ -7,6 +7,7 @@ require github.com/joho/godotenv v1.5.1
 require (
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/pb33f/libopenapi v0.18.6
+	github.com/rs/cors v1.11.1
 	github.com/testcontainers/testcontainers-go v0.34.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.34.0
 )
