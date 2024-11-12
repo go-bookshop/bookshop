@@ -28,6 +28,11 @@ type config struct {
 	doc struct {
 		json *[]byte
 	}
+	cors struct {
+		allowedOrigins []string
+		allowedHeaders []string
+		allowedMethods []string
+	}
 }
 
 type application struct {
@@ -114,6 +119,10 @@ func parseConfig() config {
 	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 4, "Database max open connections")
 	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 1, "Database min idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
+
+	cfg.cors.allowedOrigins = strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	cfg.cors.allowedMethods = strings.Split(os.Getenv("CORS_ALLOWED_METHODS"), ",")
+	cfg.cors.allowedHeaders = strings.Split(os.Getenv("CORS_ALLOWED_HEADERS"), ",")
 
 	flag.Parse()
 
