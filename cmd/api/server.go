@@ -3,21 +3,12 @@ package main
 import (
 	"net/http"
 	"time"
-
-	"github.com/rs/cors"
 )
 
 func (app *application) configure() http.Handler {
 	routes := app.routes()
 
-	corsOptions := cors.New(cors.Options{
-		AllowedOrigins:   app.config.cors.allowedOrigins,
-		AllowedHeaders:   app.config.cors.allowedHeaders,
-		AllowedMethods:   app.config.cors.allowedMethods,
-		AllowCredentials: true,
-	})
-
-	handler := corsOptions.Handler(routes)
+	handler := app.enableCORS(routes)
 
 	return handler
 }
