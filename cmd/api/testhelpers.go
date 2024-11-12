@@ -21,13 +21,33 @@ func newTestApplication() *application {
 		config:       cfg,
 		logger:       slog.New(slog.NewTextHandler(io.Discard, nil)),
 		repositories: newMockRepositories(),
+		mailer:       mock.NewMailTrap(),
 	}
+}
+
+type mockLogWriter struct {
+	logs []string
+}
+
+func (l *mockLogWriter) Write(p []byte) (n int, err error) {
+	l.logs = append(l.logs, string(p))
+	return len(p), nil
+}
+
+func newMockLogWriter() *mockLogWriter {
+	return &mockLogWriter{logs: make([]string, 0)}
+}
+
+func setLoggerInterceptor(app *application, w io.Writer) {
+	app.logger = slog.New(slog.NewTextHandler(w, nil))
 }
 
 func newMockRepositories() data.Repositories {
 	return data.Repositories{
 		AuthorRepository:   mock.NewAuthorRepository(),
 		CategoryRepository: mock.NewCategoryRepository(),
+		UserRepository:     mock.NewUserRepository(),
+		TokenRepository:    mock.NewTokenRepository(),
 	}
 }
 

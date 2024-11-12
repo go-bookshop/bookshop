@@ -40,6 +40,11 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 	app.errorResponse(w, r, http.StatusBadRequest, errorResponse{err.Error()})
 }
 
+func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
+	msg := "unable to update the record due to an edit conflict, please try again"
+	app.errorResponse(w, r, http.StatusConflict, errorResponse{msg})
+}
+
 type validationResponse struct {
 	Errors map[string]string `json:"errors"`
 }

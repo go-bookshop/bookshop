@@ -3,6 +3,7 @@ package main
 import (
 	"bookshop/internal/data"
 	"bookshop/internal/doc"
+	"bookshop/internal/mailer"
 	"context"
 	"errors"
 	"flag"
@@ -28,12 +29,18 @@ type config struct {
 	doc struct {
 		json *[]byte
 	}
+	mailer struct {
+		url    string
+		token  string
+		sender string
+	}
 }
 
 type application struct {
 	config       config
 	logger       *slog.Logger
 	repositories data.Repositories
+	mailer       mailer.Mailer
 }
 
 func main() {
@@ -56,6 +63,8 @@ func main() {
 		config:       cfg,
 		logger:       logger,
 		repositories: data.NewRepositories(dbpool),
+		//Using https://mailtrap.io/ for now, this should be changed with real mailer later
+		mailer: mailer.NewMailTrap(cfg.mailer.url, cfg.mailer.token, cfg.mailer.sender),
 	}
 
 	err = app.run()
@@ -114,6 +123,10 @@ func parseConfig() config {
 	flag.IntVar(&cfg.db.maxConns, "dbpool-max-conns", 4, "Database max open connections")
 	flag.IntVar(&cfg.db.minConns, "dbpool-min-conns", 1, "Database min idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "dbpool-max-idle-time", 15*time.Minute, "Database max connection idle time")
+
+	flag.StringVar(&cfg.mailer.url, "mailer-url", os.Getenv("MAILER_URL"), "mailer url")
+	flag.StringVar(&cfg.mailer.token, "mailer-token", os.Getenv("MAILER_TOKEN"), "mailer token")
+	flag.StringVar(&cfg.mailer.sender, "mailer-sender", "no-reply@booktime.com", "mailer sender")
 
 	flag.Parse()
 

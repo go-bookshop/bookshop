@@ -45,7 +45,7 @@ func (s *AuthorRepoTestSuite) TestAuthorRepository_Insert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NonZero(t, author.ID, "id")
 		assert.NonZero(t, author.CreatedAt, "createdAt")
-		assert.NonZero(t, author.CreatedAt, "updatedAt")
+		assert.NonZero(t, author.UpdatedAt, "updatedAt")
 	})
 }
 

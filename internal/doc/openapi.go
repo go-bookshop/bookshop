@@ -56,12 +56,13 @@ type Operation struct {
 	v3.Operation
 }
 
-func NewOperation(id, desc string) *Operation {
+func NewOperation(id, desc string, tags []string) *Operation {
 	requestContent := orderedmap.New[string, *v3.MediaType]()
 	responseCodes := orderedmap.New[string, *v3.Response]()
 	op := v3.Operation{
 		OperationId: id,
 		Description: desc,
+		Tags:        tags,
 		RequestBody: &v3.RequestBody{
 			Content: requestContent,
 		},
@@ -94,6 +95,11 @@ type Schema struct {
 	base.SchemaProxy
 }
 
+var NoBodySchema = &Schema{SchemaProxy: *base.CreateSchemaProxy(
+	&base.Schema{
+		Type: []string{"object"},
+	})}
+
 func NewSchema() *Schema {
 	sp := *base.CreateSchemaProxy(&base.Schema{
 		Type:       []string{"object"},
@@ -116,5 +122,8 @@ func GenerateOpenAPISpec() *v3.Document {
 	d := NewDocument()
 	d.AddPathItem("post", "/v1/authors", createAuthorOperation())
 	d.AddPathItem("post", "/v1/books/categories", createCategoryOperation())
+	d.AddPathItem("post", "/v1/users", registerUserOperation())
+	d.AddPathItem("put", "/v1/users/activate", activateUserOperation())
+	d.AddPathItem("post", "/v1/users/activation/resend-token", resendTokenOperation())
 	return &d.Document
 }

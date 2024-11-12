@@ -16,7 +16,7 @@ func TestNewDocument(t *testing.T) {
 
 func TestDocumentAddPathItem(t *testing.T) {
 	d := NewDocument()
-	o := NewOperation("select", "")
+	o := NewOperation("select", "", []string{})
 
 	d.AddPathItem("post", "/post", o)
 	d.AddPathItem("get", "/get", o)
@@ -46,9 +46,10 @@ func TestDocumentAddPathItem(t *testing.T) {
 }
 
 func TestNewOperation(t *testing.T) {
-	o := NewOperation("select", "desc")
+	o := NewOperation("select", "desc", []string{"testTag"})
 	assert.Equal(t, "select", o.OperationId)
 	assert.Equal(t, "desc", o.Description)
+	assert.StringContains(t, "testTag", o.Tags[0])
 	assert.NotNil(t, o.RequestBody)
 	assert.NotNil(t, o.RequestBody.Content)
 	assert.NotNil(t, o.Responses)
@@ -56,7 +57,7 @@ func TestNewOperation(t *testing.T) {
 }
 
 func TestOperationAddResponseSchema(t *testing.T) {
-	o := NewOperation("select", "desc")
+	o := NewOperation("select", "desc", []string{})
 	s := NewSchema()
 	o.AddResponseSchema(s, "200", "text/text", "test2")
 
@@ -78,7 +79,7 @@ func TestNewSchema(t *testing.T) {
 }
 
 func TestOperationAddRequestSchema(t *testing.T) {
-	o := NewOperation("select", "desc")
+	o := NewOperation("select", "desc", []string{})
 	s := NewSchema()
 	o.AddRequestSchema(s, "text/text", true)
 

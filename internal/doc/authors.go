@@ -1,7 +1,7 @@
 package doc
 
 func createAuthorOperation() *Operation {
-	op := NewOperation("Create new author", "")
+	op := NewOperation("Create new author", "", []string{"Authors"})
 
 	reqSchema := NewSchema()
 	reqSchema.AddProperty("name", "string", "The name of the author", true)

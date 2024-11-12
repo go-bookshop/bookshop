@@ -1,7 +1,7 @@
 package doc
 
 func createCategoryOperation() *Operation {
-	op := NewOperation("Create new category", "")
+	op := NewOperation("Create new category", "", []string{"Categories"})
 
 	reqSchema := NewSchema()
 	reqSchema.AddProperty("name", "string", "The name of the category", true)
