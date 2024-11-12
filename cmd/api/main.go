@@ -29,6 +29,11 @@ type config struct {
 	doc struct {
 		json *[]byte
 	}
+	cors struct {
+		allowedOrigins []string
+		allowedHeaders []string
+		allowedMethods []string
+	}
 	mailer struct {
 		url    string
 		token  string
@@ -127,6 +132,10 @@ func parseConfig() config {
 	flag.StringVar(&cfg.mailer.url, "mailer-url", os.Getenv("MAILER_URL"), "mailer url")
 	flag.StringVar(&cfg.mailer.token, "mailer-token", os.Getenv("MAILER_TOKEN"), "mailer token")
 	flag.StringVar(&cfg.mailer.sender, "mailer-sender", "no-reply@booktime.com", "mailer sender")
+
+	cfg.cors.allowedOrigins = strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	cfg.cors.allowedMethods = strings.Split(os.Getenv("CORS_ALLOWED_METHODS"), ",")
+	cfg.cors.allowedHeaders = strings.Split(os.Getenv("CORS_ALLOWED_HEADERS"), ",")
 
 	flag.Parse()
 
