@@ -9,6 +9,7 @@ type Repositories struct {
 	UserRepository     UserRepositoryInterface
 	TokenRepository    TokenRepositoryInterface
 	CategoryRepository CategoryRepositoryInterface
+	BookRepository     BookRepositoryInterface
 }
 
 func NewRepositories(dbpool *pgxpool.Pool) Repositories {
@@ -17,5 +18,6 @@ func NewRepositories(dbpool *pgxpool.Pool) Repositories {
 		UserRepository:     NewUserRepository(dbpool),
 		TokenRepository:    NewTokenRepository(dbpool),
 		CategoryRepository: NewCategoryRepository(dbpool),
+		BookRepository:     NewBookRepository(dbpool),
 	}
 }

@@ -10,7 +10,7 @@ func createCategoryOperation() *Operation {
 	successSchema := NewSchema()
 	successSchema.AddProperty("id", "integer", "Generated id of the category", true)
 	successSchema.AddProperty("name", "string", "The name of the category", true)
-	successSchema.AddProperty("bio", "string", "Description of the category", true)
+	successSchema.AddProperty("description", "string", "Description of the category", true)
 
 	requestErrorSchema := NewSchema()
 	requestErrorSchema.AddProperty("errMsg", "string", "Specific error", true)
