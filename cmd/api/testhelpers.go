@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 )
 
@@ -27,10 +28,13 @@ func newTestApplication() *application {
 
 type mockLogWriter struct {
 	logs []string
+	l    sync.Mutex
 }
 
-func (l *mockLogWriter) Write(p []byte) (n int, err error) {
-	l.logs = append(l.logs, string(p))
+func (w *mockLogWriter) Write(p []byte) (n int, err error) {
+	w.l.Lock()
+	defer w.l.Unlock()
+	w.logs = append(w.logs, string(p))
 	return len(p), nil
 }
 
