@@ -184,7 +184,8 @@ func (s *Schema) AddSchemaArrayProperty(name, desc string, itemSchema *Schema, r
 func GenerateOpenAPISpec() *v3.Document {
 	d := NewDocument()
 
-	d.AddComponent("Book", getBookComponentSchema())
+	d.AddComponent("BookItem", getBookItemComponentSchema())
+	d.AddComponent("BookProperty", getBookPropertySchema())
 
 	d.AddPathItem("post", "/v1/authors", createAuthorOperation())
 	d.AddPathItem("post", "/v1/books/categories", createCategoryOperation())

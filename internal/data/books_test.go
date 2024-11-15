@@ -51,7 +51,7 @@ func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
 
 	books, count, err := s.repository.GetBooks(p)
 	assert.NoError(t, err)
-	assert.Equal(t, count, 6)
+	assert.Equal(t, count, 5)
 	assert.Equal(t, len(books), p.PageSize)
 
 	for _, b := range books {
@@ -59,6 +59,8 @@ func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
 		assert.NonZero(t, b.Title, "title")
 		assert.NonZero(t, b.CreatedAt, "created_at")
 		assert.NonZero(t, b.UpdatedAt, "updated_at")
+		assert.NonZero(t, b.Authors, "authors")
+		assert.NonZero(t, len(b.Properties), "properties")
 		assert.NotNil(t, b.ImageUrls)
 		assert.True(t, b.AvgReview >= 0)
 	}

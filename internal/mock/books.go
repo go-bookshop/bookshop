@@ -13,38 +13,74 @@ func NewBookRepository() data.BookRepositoryInterface {
 type BookRepository struct {
 }
 
-func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.Book, int, error) {
-	books := []data.Book{
+func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem, int, error) {
+	books := []data.BookItem{
 		{
-			ID:        1,
-			Title:     "test",
-			AvgReview: 3.3,
-			ImageUrls: []string{"https://image1.jpg"},
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Book: data.Book{
+				ID:        1,
+				Title:     "test",
+				Synopsis:  "something very interesting about this book",
+				AvgReview: 3.3,
+				ImageUrls: []string{"https://image1.jpg"},
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Authors: "A",
+			Properties: []data.BookProperty{
+				{
+					ID:        1,
+					Format:    data.Paperback,
+					Available: data.Available,
+					Price:     100,
+				},
+			},
 		},
 		{
-			ID:        2,
-			Title:     "test2",
-			AvgReview: 3.4,
-			ImageUrls: []string{"https://image2.jpg"},
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Book: data.Book{
+				ID:        2,
+				Title:     "test2",
+				Synopsis:  "something very interesting about this book",
+				AvgReview: 3.4,
+				ImageUrls: []string{"https://image2.jpg"},
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Authors: "B",
+			Properties: []data.BookProperty{
+				{
+					ID:        2,
+					Format:    data.Paperback,
+					Available: data.Available,
+					Price:     100,
+				},
+			},
 		},
 		{
-			ID:        3,
-			Title:     "test3",
-			AvgReview: 3.6,
-			ImageUrls: []string{"https://image3.jpg"},
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			Book: data.Book{
+				ID:        3,
+				Title:     "test3",
+				Synopsis:  "something very interesting about this book",
+				AvgReview: 3.6,
+				ImageUrls: []string{"https://image3.jpg"},
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			},
+			Authors: "A, B",
+			Properties: []data.BookProperty{
+				{
+					ID:        3,
+					Format:    data.Paperback,
+					Available: data.Available,
+					Price:     100,
+				},
+			},
 		},
 	}
 	booksLen := len(books)
 
 	start := pd.PageNumber * pd.PageSize
 	if start >= booksLen {
-		return []data.Book{}, 1, nil
+		return []data.BookItem{}, 1, nil
 	}
 
 	end := start + pd.PageSize

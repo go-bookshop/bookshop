@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS book_properties
+DROP COLUMN IF EXISTS cover_type;

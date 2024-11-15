@@ -69,13 +69,6 @@ func NotNil(t *testing.T, ptr any) {
 	}
 }
 
-func Nil(t *testing.T, ptr any) {
-	t.Helper()
-	if ptr != nil {
-		t.Errorf("expected to be nil")
-	}
-}
-
 func True(t *testing.T, b bool) {
 	t.Helper()
 	if !b {
