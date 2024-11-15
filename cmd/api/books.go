@@ -20,9 +20,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ctx := r.Context()
-
-	books, booksCount, err := app.repositories.BookRepository.GetBooks(ctx, pagination)
+	books, booksCount, err := app.repositories.BookRepository.GetBooks(pagination)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -31,7 +29,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 	res := response{
 		PageNumber: pagination.PageNumber,
 		PageSize:   pagination.PageSize,
-		MaxPages:   booksCount / pagination.PageSize,
+		MaxPages:   httputil.CalculateMaxPages(booksCount, pagination.PageSize),
 		Data:       books,
 	}
 

@@ -52,6 +52,7 @@ func newMockRepositories() data.Repositories {
 		CategoryRepository: mock.NewCategoryRepository(),
 		UserRepository:     mock.NewUserRepository(),
 		TokenRepository:    mock.NewTokenRepository(),
+		BookRepository:     mock.NewBookRepository(),
 	}
 }
 

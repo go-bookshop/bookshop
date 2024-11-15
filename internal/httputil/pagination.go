@@ -48,3 +48,11 @@ func ParsePaginationQuery(r *http.Request) (*PaginationData, error) {
 
 	return pagination, nil
 }
+
+func CalculateMaxPages(maxItems, pageSize int) int {
+	if pageSize <= 0 {
+		return 0
+	}
+
+	return (maxItems + pageSize - 1) / pageSize
+}

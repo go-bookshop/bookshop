@@ -10,7 +10,7 @@ import (
 )
 
 type BookRepositoryInterface interface {
-	GetBooks(context.Context, *httputil.PaginationData) ([]Book, int, error)
+	GetBooks(*httputil.PaginationData) ([]Book, int, error)
 }
 
 func NewBookRepository(DBPool *pgxpool.Pool) BookRepositoryInterface {
@@ -30,9 +30,9 @@ type BookRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (r *BookRepository) GetBooks(ctx context.Context, pd *httputil.PaginationData) ([]Book, int, error) {
+func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]Book, int, error) {
 	query := `
-select b.id, b.title, b.image_url, b.avg_review, b.created_at, b.updated_at
+select b.id, b.title, b.image_urls, b.avg_review, b.created_at, b.updated_at
 from books as b
 offset $1
 fetch first $2 rows only
@@ -44,6 +44,9 @@ select count(id) from books
 	batch := &pgx.Batch{}
 	batch.Queue(query, pd.PageNumber*pd.PageSize, pd.PageSize)
 	batch.Queue(countQuery)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 
 	results := r.DBPool.SendBatch(ctx, batch)
 
