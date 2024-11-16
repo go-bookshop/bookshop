@@ -10,6 +10,7 @@ import (
 func Test_ParsePaginationQuery(t *testing.T) {
 	pageSizeErr := fmt.Sprintf("invalid page size. value should not be less than 1 and greater than %d", maxPageSize)
 	pageNumberErr := "invalid page number. value should not be less than 0"
+	parseErr := "failed to parse"
 
 	tests := []struct {
 		name         string
@@ -57,13 +58,13 @@ func Test_ParsePaginationQuery(t *testing.T) {
 			name:         "Invalid page number (not an integer)",
 			query:        "page=abc&size=10",
 			expectedData: nil,
-			expectedErr:  pageNumberErr,
+			expectedErr:  parseErr,
 		},
 		{
 			name:         "Invalid page size (not an integer)",
 			query:        "page=1&size=abc",
 			expectedData: nil,
-			expectedErr:  pageSizeErr,
+			expectedErr:  parseErr,
 		},
 	}
 
@@ -76,7 +77,7 @@ func Test_ParsePaginationQuery(t *testing.T) {
 
 			if tt.expectedErr != "" {
 				assert.NotNil(t, err)
-				assert.Equal(t, err.Error(), tt.expectedErr)
+				assert.StringContains(t, err.Error(), tt.expectedErr)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, pagination.PageNumber, tt.expectedData.PageNumber)

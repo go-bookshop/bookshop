@@ -28,7 +28,10 @@ func ParsePaginationQuery(r *http.Request) (*PaginationData, error) {
 	if pageNumber != "" {
 		pn, err := strconv.Atoi(pageNumber)
 
-		if pn < 0 || err != nil {
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse page: %s", err.Error())
+		}
+		if pn < 0 {
 			return nil, errors.New("invalid page number. value should not be less than 0")
 		}
 
@@ -39,7 +42,10 @@ func ParsePaginationQuery(r *http.Request) (*PaginationData, error) {
 	if pageSize != "" {
 		ps, err := strconv.Atoi(pageSize)
 
-		if (ps < 1 || ps > maxPageSize) || err != nil {
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse size: %s", err.Error())
+		}
+		if ps < 1 || ps > maxPageSize {
 			return nil, fmt.Errorf("invalid page size. value should not be less than 1 and greater than %d", maxPageSize)
 		}
 

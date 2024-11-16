@@ -31,16 +31,28 @@ func TestBooks_getBooks(t *testing.T) {
 			wantBody: `"page":10,"size":1,"max_pages":1,"data":[]`,
 		},
 		{
-			name:     "Invalid query params (invalid page number)",
+			name:     "Invalid query params (invalid page number value)",
 			endpoint: "/v1/books?page=-1&size=1",
 			wantCode: http.StatusBadRequest,
 			wantBody: "invalid page number",
 		},
 		{
-			name:     "Invalid query params (invalid page size)",
+			name:     "Invalid query params (invalid page number format)",
+			endpoint: "/v1/books?page=one&size=1",
+			wantCode: http.StatusBadRequest,
+			wantBody: "failed to parse page",
+		},
+		{
+			name:     "Invalid query params (invalid page size value)",
 			endpoint: "/v1/books?page=0&size=0",
 			wantCode: http.StatusBadRequest,
 			wantBody: "invalid page size",
+		},
+		{
+			name:     "Invalid query params (invalid page size format)",
+			endpoint: "/v1/books?page=0&size=zero",
+			wantCode: http.StatusBadRequest,
+			wantBody: "failed to parse size",
 		},
 	}
 
