@@ -27,19 +27,25 @@ func newTestApplication() *application {
 }
 
 type mockLogWriter struct {
-	logs string
-	l    sync.Mutex
+	logs []byte
+	l    sync.RWMutex
 }
 
 func (w *mockLogWriter) Write(p []byte) (n int, err error) {
 	w.l.Lock()
 	defer w.l.Unlock()
-	w.logs += string(p)
+	w.logs = append(w.logs, p...)
 	return len(p), nil
 }
 
+func (w *mockLogWriter) Logs() string {
+	w.l.RLock()
+	defer w.l.RUnlock()
+	return string(w.logs)
+}
+
 func (w *mockLogWriter) cleanUp() {
-	w.logs = ""
+	w.logs = make([]byte, 0)
 }
 
 func newMockLogWriter() *mockLogWriter {

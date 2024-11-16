@@ -187,7 +187,7 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.CorruptedEmail),
 		},
 		{
-			name:        "Recovers from unexpected panic in email-sending goroutine",
+			name:        "Recovers from Recovers from unexpected panic in email-sending goroutine",
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusAccepted,
 			wantBody:    fmt.Sprintf(`{"id":999,"firstName":"John","lastName":"Doe","email":%q,"activated":false}`, mock.PanicEmail),
@@ -214,7 +214,7 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			assert.StringContains(t, gotBody, tt.wantBody)
 			if tt.wantLogs != "" {
 				time.Sleep(10 * time.Millisecond) //waiting for email-sending goroutine
-				assert.StringContains(t, logWriter.logs, tt.wantLogs)
+				assert.StringContains(t, logWriter.Logs(), tt.wantLogs)
 			}
 		})
 	}

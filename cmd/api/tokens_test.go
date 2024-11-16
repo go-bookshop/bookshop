@@ -105,7 +105,7 @@ func TestTokens_resendActivationTokenHandler(t *testing.T) {
 			}
 			if tt.wantLogs != "" {
 				time.Sleep(10 * time.Millisecond) //waiting for email-sending goroutine
-				assert.StringContains(t, logWriter.logs, tt.wantLogs)
+				assert.StringContains(t, logWriter.Logs(), tt.wantLogs)
 			}
 		})
 	}
