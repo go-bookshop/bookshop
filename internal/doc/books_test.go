@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-func TestCreateAuthorOperation(t *testing.T) {
-	got := createAuthorOperation()
+func TestGetBooksOperation(t *testing.T) {
+	got := getBooksOperation()
 	assert.NotNil(t, got)
-	assert.StringContains(t, strings.ToLower(got.OperationId), "create")
-	assert.SliceContains(t, got.Tags, AuthorsTag)
+	assert.StringContains(t, strings.ToLower(got.OperationId), "get")
+	assert.SliceContains(t, got.Tags, BooksTag)
 	assert.NotNil(t, got.RequestBody)
 	assert.NotNil(t, got.Responses)
 	assert.NotNil(t, got.RequestBody.Content)

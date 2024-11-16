@@ -18,6 +18,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("GET /v1/doc/", app.openAPISpecHandler)
 	mux.HandleFunc("GET /v1/doc/ui", app.redocHandler)
 
+	mux.HandleFunc("GET /v1/books", app.getBooksHandler)
 	mux.HandleFunc("POST /v1/books/categories", app.createBooksCategoryHandler)
 
 	return mux

@@ -1,7 +1,9 @@
 package doc
 
+const CategoriesTag = "Categories"
+
 func createCategoryOperation() *Operation {
-	op := NewOperation("Create new category", "", []string{"Categories"})
+	op := NewOperation("Create new category", "", []string{CategoriesTag})
 
 	reqSchema := NewSchema()
 	reqSchema.AddProperty("name", "string", "The name of the category", true)
@@ -10,7 +12,7 @@ func createCategoryOperation() *Operation {
 	successSchema := NewSchema()
 	successSchema.AddProperty("id", "integer", "Generated id of the category", true)
 	successSchema.AddProperty("name", "string", "The name of the category", true)
-	successSchema.AddProperty("bio", "string", "Description of the category", true)
+	successSchema.AddProperty("description", "string", "Description of the category", true)
 
 	requestErrorSchema := NewSchema()
 	requestErrorSchema.AddProperty("errMsg", "string", "Specific error", true)

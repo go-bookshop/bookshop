@@ -2,7 +2,10 @@ package doc
 
 import (
 	"bookshop/internal/assert"
+	"fmt"
 	"testing"
+
+	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
 func TestNewDocument(t *testing.T) {
@@ -12,6 +15,8 @@ func TestNewDocument(t *testing.T) {
 	assert.Equal(t, d.Info.Version, "1.0.0")
 	assert.NotNil(t, d.Paths)
 	assert.NotNil(t, d.Paths.PathItems)
+	assert.NotNil(t, d.Components)
+	assert.NotNil(t, d.Components.Schemas)
 }
 
 func TestDocumentAddPathItem(t *testing.T) {
@@ -78,6 +83,16 @@ func TestNewSchema(t *testing.T) {
 	assert.Equal(t, s.SchemaProxy.Schema().Type[0], "object")
 }
 
+func TestNewRefSchema(t *testing.T) {
+	schemaName := "TestSchema"
+
+	s := NewRefSchema(schemaName)
+
+	assert.NotNil(t, s.SchemaProxy)
+	assert.True(t, s.SchemaProxy.IsReference())
+	assert.Equal(t, s.SchemaProxy.GetReference(), fmt.Sprintf("#/components/schemas/%s", schemaName))
+}
+
 func TestOperationAddRequestSchema(t *testing.T) {
 	o := NewOperation("select", "desc", []string{})
 	s := NewSchema()
@@ -87,6 +102,30 @@ func TestOperationAddRequestSchema(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, content.Schema, &s.SchemaProxy)
 	assert.True(t, *o.RequestBody.Required)
+}
+
+func TestOperationAddQueryParameter(t *testing.T) {
+	o := NewOperation("select", "desc", []string{})
+
+	paramName := "test"
+	paramType := "integer"
+	paramDesc := "test desc"
+	required := false
+	o.AddQueryParameter(paramName, paramType, paramDesc, required)
+
+	var param *v3.Parameter
+	for _, p := range o.Parameters {
+		if p.Name == paramName && p.In == "query" {
+			param = p
+			break
+		}
+	}
+
+	assert.NotNil(t, param)
+	assert.Equal(t, param.Name, paramName)
+	assert.Equal(t, param.Description, paramDesc)
+	assert.Equal(t, *param.Required, required)
+	assert.SliceContains(t, param.Schema.Schema().Type, paramType)
 }
 
 func TestSchemaAddProperty(t *testing.T) {
@@ -100,7 +139,46 @@ func TestSchemaAddProperty(t *testing.T) {
 	assert.Equal(t, s.SchemaProxy.Schema().Required[0], "post")
 }
 
+func TestSchemaAddSimpleArrayProperty(t *testing.T) {
+	s := NewSchema()
+	propertyName := "tags"
+	itemType := "string"
+	description := "An array of tags"
+	required := true
+
+	s.AddSimpleArrayProperty(propertyName, itemType, description, required)
+
+	val, exists := s.SchemaProxy.Schema().Properties.Get(propertyName)
+	assert.True(t, exists)
+	assert.SliceContains(t, val.Schema().Type, "array")
+	assert.Equal(t, description, val.Schema().Description)
+	assert.SliceContains(t, val.Schema().Items.A.Schema().Type, itemType)
+	assert.SliceContains(t, s.SchemaProxy.Schema().Required, propertyName)
+}
+
+func TestSchemaAddSchemaArrayProperty(t *testing.T) {
+	mainSchema := NewSchema()
+	itemSchema := NewSchema()
+
+	itemPropertyName := "name"
+	itemSchema.AddProperty(itemPropertyName, "string", "Name of the item", true)
+
+	propertyName := "items"
+	description := "An array of item schemas"
+	required := true
+
+	mainSchema.AddSchemaArrayProperty(propertyName, description, itemSchema, required)
+
+	val, exists := mainSchema.SchemaProxy.Schema().Properties.Get(propertyName)
+	assert.True(t, exists)
+	assert.SliceContains(t, val.Schema().Type, "array")
+	assert.Equal(t, val.Schema().Description, description)
+	assert.Equal(t, *val.Schema().Items.A, itemSchema.SchemaProxy)
+	assert.SliceContains(t, mainSchema.SchemaProxy.Schema().Required, propertyName)
+}
+
 func TestGenerateOpenAPISpec(t *testing.T) {
 	d := GenerateOpenAPISpec()
 	assert.NotNil(t, d.Paths.PathItems)
+	assert.NotNil(t, d.Components.Schemas)
 }
