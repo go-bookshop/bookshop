@@ -46,7 +46,7 @@ func (s *CategoryRepoTestSuite) TestCategoryRepository_Insert(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NonZero(t, category.ID, "id")
 		assert.NonZero(t, category.CreatedAt, "createdAt")
-		assert.NonZero(t, category.CreatedAt, "updatedAt")
+		assert.NonZero(t, category.UpdatedAt, "updatedAt")
 	})
 
 	t.Run("Duplicate Category", func(t *testing.T) {

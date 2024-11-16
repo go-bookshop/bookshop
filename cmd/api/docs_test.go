@@ -14,7 +14,7 @@ func TestOpenAPISpecHandler(t *testing.T) {
 	gotCode, gotHeader, gotBody := ts.get(t, "/v1/doc/")
 	assert.Equal(t, gotCode, http.StatusOK)
 	assert.Equal(t, gotHeader.Get("Content-Type"), "application/json")
-	assert.Contains(t, gotBody, "openapi")
+	assert.StringContains(t, gotBody, "openapi")
 }
 
 func TestRedocHandler(t *testing.T) {
@@ -25,5 +25,5 @@ func TestRedocHandler(t *testing.T) {
 	gotCode, gotHeader, gotBody := ts.get(t, "/v1/doc/ui")
 	assert.Equal(t, gotCode, http.StatusOK)
 	assert.Equal(t, gotHeader.Get("Content-Type"), "text/html; charset=utf-8")
-	assert.Contains(t, gotBody, "Redoc")
+	assert.StringContains(t, gotBody, "Redoc")
 }

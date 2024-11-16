@@ -9,7 +9,8 @@ import (
 func TestCreateAuthorOperation(t *testing.T) {
 	got := createAuthorOperation()
 	assert.NotNil(t, got)
-	assert.Contains(t, strings.ToLower(got.OperationId), "create")
+	assert.StringContains(t, strings.ToLower(got.OperationId), "create")
+	assert.SliceContains(t, got.Tags, AuthorsTag)
 	assert.NotNil(t, got.RequestBody)
 	assert.NotNil(t, got.Responses)
 	assert.NotNil(t, got.RequestBody.Content)

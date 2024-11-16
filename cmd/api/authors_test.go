@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestAuthors(t *testing.T) {
+func TestAuthors_createAuthorHandler(t *testing.T) {
 	app := newTestApplication()
 	ts := newTestServer(app.routes())
 	defer ts.Close()
@@ -86,7 +86,7 @@ func TestAuthors(t *testing.T) {
 			gotCode, gotHeader, gotBody := ts.post(t, tt.endpoint, tt.requestBody)
 			assert.Equal(t, gotCode, tt.wantCode)
 			assert.Equal(t, gotHeader.Get("Content-Type"), "application/json")
-			assert.Contains(t, gotBody, tt.wantBody)
+			assert.StringContains(t, gotBody, tt.wantBody)
 			if tt.wantLocation != "" {
 				assert.Equal(t, gotHeader.Get("Location"), tt.wantLocation)
 			}

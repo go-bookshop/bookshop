@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestCategories(t *testing.T) {
+func TestCategories_createBooksCategoryHandler(t *testing.T) {
 	app := newTestApplication()
 	ts := newTestServer(app.routes())
 	defer ts.Close()
@@ -93,7 +93,7 @@ func TestCategories(t *testing.T) {
 			gotCode, gotHeader, gotBody := ts.post(t, tt.endpoint, tt.requestBody)
 			assert.Equal(t, gotCode, tt.wantCode)
 			assert.Equal(t, gotHeader.Get("Content-Type"), "application/json")
-			assert.Contains(t, gotBody, tt.wantBody)
+			assert.StringContains(t, gotBody, tt.wantBody)
 			if tt.wantLocation != "" {
 				assert.Equal(t, gotHeader.Get("Location"), tt.wantLocation)
 			}

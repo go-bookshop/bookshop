@@ -2,9 +2,13 @@ package data
 
 import (
 	"context"
-	"path/filepath"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"os"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -18,16 +22,12 @@ type PostgresContainer struct {
 func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:16.4-alpine",
-		postgres.WithInitScripts(
-			filepath.Join("../..", "testdata", "init-db-authors.sql"),
-			filepath.Join("../..", "testdata", "init-db-categories.sql"),
-		),
 		postgres.WithDatabase("test-db"),
 		postgres.WithUsername("postgres"),
 		postgres.WithPassword("postgres"),
 		testcontainers.WithWaitStrategy(
 			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).WithStartupTimeout(5*time.Second)),
+				WithOccurrence(2).WithStartupTimeout(10*time.Second)),
 	)
 	if err != nil {
 		return nil, err
@@ -37,8 +37,35 @@ func CreatePostgresContainer(ctx context.Context) (*PostgresContainer, error) {
 		return nil, err
 	}
 
+	err = RunMigrationsUp(connStr)
+	if err != nil {
+		return nil, err
+	}
+
 	return &PostgresContainer{
 		PostgresContainer: pgContainer,
 		ConnectionString:  connStr,
 	}, nil
+}
+
+func RunMigrationsUp(connStr string) error {
+	m, err := migrate.New("file://../../migrations", connStr)
+	if err != nil {
+		return err
+	}
+	return m.Up()
+}
+
+func RunTestData(pool *pgxpool.Pool, files ...string) error {
+	for _, f := range files {
+		queries, err := os.ReadFile(f)
+		if err != nil {
+			return err
+		}
+		_, err = pool.Exec(context.Background(), string(queries))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

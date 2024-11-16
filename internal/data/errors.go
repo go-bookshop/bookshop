@@ -3,5 +3,7 @@ package data
 import "errors"
 
 var (
-	ErrDuplicateItem = errors.New("item must be unique")
+	ErrDuplicateItem      = errors.New("item must be unique")
+	ErrRecordNotFound     = errors.New("record not found")
+	ErrRecordEditConflict = errors.New("record edit conflict")
 )

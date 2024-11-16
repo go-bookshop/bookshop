@@ -1,6 +1,7 @@
 package assert
 
 import (
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -13,9 +14,23 @@ func Equal[T comparable](t *testing.T, got, want T) {
 	}
 }
 
-func Contains(t *testing.T, got, want string) {
+func NotEqual[T comparable](t *testing.T, got, want T) {
+	t.Helper()
+	if got == want {
+		t.Errorf("got %v should not be equal %v", got, want)
+	}
+}
+
+func StringContains(t *testing.T, got, want string) {
 	t.Helper()
 	if !strings.Contains(got, want) {
+		t.Errorf("%q should contain %q", got, want)
+	}
+}
+
+func SliceContains(t *testing.T, got []string, want string) {
+	t.Helper()
+	if !slices.Contains(got, want) {
 		t.Errorf("%q should contain %q", got, want)
 	}
 }
@@ -38,6 +53,30 @@ func NonZero(t *testing.T, value any, key string) {
 		if v.IsZero() {
 			t.Errorf("%q is expected to be non-zero", key)
 		}
+	case string:
+		if v == "" {
+			t.Errorf("%q is expected to be non-zero", key)
+		}
+	default:
+		t.Fatal("type is not present in NonZero switch, add it")
+	}
+}
+
+func Zero(t *testing.T, value any, key string) {
+	t.Helper()
+	switch v := value.(type) {
+	case int, int8, int16, int32, int64:
+		if v != 0 {
+			t.Errorf("%q is expected to be zero", key)
+		}
+	case time.Time:
+		if !v.IsZero() {
+			t.Errorf("%q is expected to be zero", key)
+		}
+	case string:
+		if v != "" {
+			t.Errorf("%q is expected to be zero", key)
+		}
 	default:
 		t.Fatal("type is not present in NonZero switch, add it")
 	}
@@ -53,6 +92,13 @@ func NotNil(t *testing.T, ptr any) {
 func True(t *testing.T, b bool) {
 	t.Helper()
 	if !b {
+		t.Errorf("expected to be true")
+	}
+}
+
+func False(t *testing.T, b bool) {
+	t.Helper()
+	if b {
 		t.Errorf("expected to be true")
 	}
 }
