@@ -166,8 +166,9 @@ func (s *Schema) AddEnumProperty(name, propType, desc string, required bool, val
 	}
 
 	s.SchemaProxy.Schema().Properties.Set(name, base.CreateSchemaProxy(&base.Schema{
-		Type: []string{propType},
-		Enum: enumValues,
+		Type:        []string{propType},
+		Description: desc,
+		Enum:        enumValues,
 	}))
 	if required {
 		s.SchemaProxy.Schema().Required = append(s.SchemaProxy.Schema().Required, name)

@@ -177,6 +177,18 @@ func TestSchemaAddSchemaArrayProperty(t *testing.T) {
 	assert.SliceContains(t, mainSchema.SchemaProxy.Schema().Required, propertyName)
 }
 
+func TestAddEnumProperty(t *testing.T) {
+	s := NewSchema()
+	s.AddEnumProperty("name", "integer", "desc", true, "1", "2")
+
+	val, ok := s.SchemaProxy.Schema().Properties.Get("name")
+	assert.True(t, ok)
+	assert.Equal(t, val.Schema().Description, "desc")
+	assert.NotNil(t, val.Schema().Enum)
+	assert.SliceContains(t, val.Schema().Type, "integer")
+	assert.SliceContains(t, s.Schema().Required, "name")
+}
+
 func TestGenerateOpenAPISpec(t *testing.T) {
 	d := GenerateOpenAPISpec()
 	assert.NotNil(t, d.Paths.PathItems)
