@@ -66,7 +66,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	go func(firstName, lastName, email, tokenPlaintext string) {
+	go func() {
 		defer func() {
 			if recoveredErr := recover(); recoveredErr != nil {
 				app.logger.Error("%v", recoveredErr)
@@ -78,17 +78,17 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			LastName  string
 			URL       string
 		}{
-			FirstName: firstName,
-			LastName:  lastName,
-			URL:       fmt.Sprintf("www.shouldbesomefepageforregistration.com/activate?token=%s", tokenPlaintext),
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			URL:       fmt.Sprintf("www.shouldbesomefepageforregistration.com/activate?token=%s", token.Plaintext),
 		}
 
-		err = app.mailer.Send(email, mailer.UserActivationTemplateFile, activationData)
+		err = app.mailer.Send(user.Email, mailer.UserActivationTemplateFile, activationData)
 		if err != nil {
 			app.logger.Error("failed to send email", "err", err.Error())
 			return
 		}
-	}(user.FirstName, user.LastName, user.Email, token.Plaintext)
+	}()
 
 	err = httputil.WriteJSON(w, http.StatusAccepted, user, nil)
 	if err != nil {
