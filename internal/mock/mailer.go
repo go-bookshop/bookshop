@@ -2,7 +2,7 @@ package mock
 
 import (
 	"bookshop/internal/mailer"
-	"strings"
+	"errors"
 )
 
 func NewMailTrap() mailer.Mailer {
@@ -13,11 +13,11 @@ type MailTrap struct {
 }
 
 func (m MailTrap) Send(recipient, templateFile string, data any) error {
-	if localPart, _, found := strings.Cut(recipient, "@"); found {
-		switch strings.ToLower(localPart) {
-		case "panic":
-			panic("recover me")
-		}
+	switch recipient {
+	case PanicEmail:
+		panic("recover me")
+	case FailedToSendEmail:
+		return errors.New("empty")
 	}
 	return nil
 }

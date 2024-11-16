@@ -27,19 +27,23 @@ func newTestApplication() *application {
 }
 
 type mockLogWriter struct {
-	logs []string
+	logs string
 	l    sync.Mutex
 }
 
 func (w *mockLogWriter) Write(p []byte) (n int, err error) {
 	w.l.Lock()
 	defer w.l.Unlock()
-	w.logs = append(w.logs, string(p))
+	w.logs += string(p)
 	return len(p), nil
 }
 
+func (w *mockLogWriter) cleanUp() {
+	w.logs = ""
+}
+
 func newMockLogWriter() *mockLogWriter {
-	return &mockLogWriter{logs: make([]string, 0)}
+	return &mockLogWriter{}
 }
 
 func setLoggerInterceptor(app *application, w io.Writer) {
@@ -82,6 +86,28 @@ func (ts *testServer) get(t *testing.T, endpoint string) (int, http.Header, stri
 
 func (ts *testServer) post(t *testing.T, endpoint string, requestBody string) (int, http.Header, string) {
 	rs, err := ts.Client().Post(ts.URL+endpoint, "application/json", bytes.NewBuffer([]byte(requestBody)))
+	if err != nil {
+		assert.NoError(t, err)
+	}
+
+	defer rs.Body.Close()
+	rsBody, err := io.ReadAll(rs.Body)
+	if err != nil {
+		assert.NoError(t, err)
+	}
+	rsBody = bytes.TrimSpace(rsBody)
+	return rs.StatusCode, rs.Header, string(rsBody)
+}
+
+func (ts *testServer) put(t *testing.T, endpoint string, requestBody string) (int, http.Header, string) {
+	req, err := http.NewRequest(http.MethodPut, ts.URL+endpoint, bytes.NewBuffer([]byte(requestBody)))
+	if err != nil {
+		assert.NoError(t, err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	rs, err := ts.Client().Do(req)
 	if err != nil {
 		assert.NoError(t, err)
 	}

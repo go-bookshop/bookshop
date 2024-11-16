@@ -3,14 +3,19 @@ package main
 import (
 	"bookshop/internal/assert"
 	"bookshop/internal/data"
+	"bookshop/internal/mock"
 	"fmt"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestUsers_registerUserHandler(t *testing.T) {
 	app := newTestApplication()
+	logWriter := newMockLogWriter()
+	defer logWriter.cleanUp()
+	setLoggerInterceptor(app, logWriter)
 
 	ts := newTestServer(app.routes())
 	defer ts.Close()
@@ -165,46 +170,126 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusUnprocessableEntity,
 			wantBody:    "user already exists",
-			requestBody: `{"firstName":"John","lastName":"Doe","email":"duplicate@mail.com","password":"PassWord123#"}`,
+			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.DuplicateEmail),
 		},
 		{
 			name:        "Unexpected error from UserRepository",
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusInternalServerError,
 			wantBody:    "Internal server error",
-			requestBody: `{"firstName":"John","lastName":"Doe","email":"unexpected@mail.com","password":"PassWord123#"}`,
+			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.UnexpectedEmail),
 		},
 		{
 			name:        "Unexpected error from TokenRepository",
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusInternalServerError,
 			wantBody:    "Internal server error",
-			requestBody: `{"firstName":"John","lastName":"Doe","email":"corrupted@mail.com","password":"PassWord123#"}`,
+			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.CorruptedEmail),
 		},
 		{
 			name:        "Recovers from unexpected panic in email-sending goroutine",
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusAccepted,
-			wantBody:    `{"id":999,"firstName":"John","lastName":"Doe","email":"panic@mail.com","activated":false}`,
-			requestBody: `{"firstName":"John","lastName":"Doe","email":"panic@mail.com","password":"PassWord123#"}`,
+			wantBody:    fmt.Sprintf(`{"id":999,"firstName":"John","lastName":"Doe","email":%q,"activated":false}`, mock.PanicEmail),
+			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.PanicEmail),
 			wantLogs:    "recover me",
+		},
+		{
+			name:        "Logs if failed to send email",
+			endpoint:    "/v1/users",
+			wantCode:    http.StatusAccepted,
+			wantBody:    fmt.Sprintf(`{"id":999,"firstName":"John","lastName":"Doe","email":%q,"activated":false}`, mock.FailedToSendEmail),
+			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":%q,"password":"PassWord123#"}`, mock.FailedToSendEmail),
+			wantLogs:    "failed to send email",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(logWriter.cleanUp)
+
 			gotCode, gotHeader, gotBody := ts.post(t, tt.endpoint, tt.requestBody)
 			assert.Equal(t, gotCode, tt.wantCode)
 			assert.Equal(t, gotHeader.Get("Content-Type"), "application/json")
 			assert.StringContains(t, gotBody, tt.wantBody)
 			if tt.wantLogs != "" {
-				logWriter := newMockLogWriter()
-				setLoggerInterceptor(app, logWriter)
-				for _, l := range logWriter.logs { //todo: it shouldn't check every log and stop on first found and not fail if not found in first string, maybe redesign logger?
-					assert.StringContains(t, l, tt.wantLogs)
-				}
+				time.Sleep(10 * time.Millisecond) //waiting for email-sending goroutine
+				assert.StringContains(t, logWriter.logs, tt.wantLogs)
 			}
 		})
 	}
+}
 
+func TestUsers_activateUserHandler(t *testing.T) {
+	app := newTestApplication()
+
+	ts := newTestServer(app.routes())
+	defer ts.Close()
+
+	tests := []struct {
+		name        string
+		endpoint    string
+		wantCode    int
+		wantBody    string
+		requestBody string
+	}{
+		{
+			name:        "Valid request",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusOK,
+			wantBody:    `{"id":999,"firstName":"John","lastName":"Doe","email":"doe@mail.com","activated":true}`,
+			requestBody: fmt.Sprintf(`{"token":%q}`, mock.ValidToken),
+		},
+		{
+			name:        "Invalid JSON",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusBadRequest,
+			wantBody:    "body contains badly-formed JSON",
+			requestBody: "invalid",
+		},
+		{
+			name:        "Invalid token",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusUnprocessableEntity,
+			wantBody:    "must be 26 bytes long",
+			requestBody: `{"token":"invalid"}`,
+		},
+		{
+			name:        "Non-existing token",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusUnprocessableEntity,
+			wantBody:    "invalid or expired activation token",
+			requestBody: fmt.Sprintf(`{"token":%q}`, mock.ExpiredToken),
+		},
+		{
+			name:        "Conflict write into users",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusConflict,
+			wantBody:    "edit conflict",
+			requestBody: fmt.Sprintf(`{"token":%q}`, mock.SimulateConflictWriteToken),
+		},
+		{
+			name:        "Unexpected write into users",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusInternalServerError,
+			wantBody:    "Internal server error",
+			requestBody: fmt.Sprintf(`{"token":%q}`, mock.SimulateUnexpectedWriteToken),
+		},
+		{
+			name:        "Unexpected delete from tokens",
+			endpoint:    "/v1/users/activate",
+			wantCode:    http.StatusInternalServerError,
+			wantBody:    "Internal server error",
+			requestBody: fmt.Sprintf(`{"token":%q}`, mock.SimulateFailToDeleteAllByUserIdToken),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotCode, gotHeader, gotBody := ts.put(t, tt.endpoint, tt.requestBody)
+			assert.Equal(t, gotCode, tt.wantCode)
+			assert.Equal(t, gotHeader.Get("Content-Type"), "application/json")
+			assert.StringContains(t, gotBody, tt.wantBody)
+		})
+	}
 }

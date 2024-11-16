@@ -62,6 +62,26 @@ func NonZero(t *testing.T, value any, key string) {
 	}
 }
 
+func Zero(t *testing.T, value any, key string) {
+	t.Helper()
+	switch v := value.(type) {
+	case int, int8, int16, int32, int64:
+		if v != 0 {
+			t.Errorf("%q is expected to be zero", key)
+		}
+	case time.Time:
+		if !v.IsZero() {
+			t.Errorf("%q is expected to be zero", key)
+		}
+	case string:
+		if v != "" {
+			t.Errorf("%q is expected to be zero", key)
+		}
+	default:
+		t.Fatal("type is not present in NonZero switch, add it")
+	}
+}
+
 func NotNil(t *testing.T, ptr any) {
 	t.Helper()
 	if ptr == nil {

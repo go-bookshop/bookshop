@@ -69,7 +69,7 @@ func (app *application) resendActivationTokenHandler(w http.ResponseWriter, r *h
 			URL:       fmt.Sprintf("www.shouldbesomefepageforregistration.com/activate?token=%s", token.Plaintext),
 		}
 
-		err = app.mailer.Send(user.Email, mailer.ResendActivationTemplateFile, activationData)
+		err := app.mailer.Send(user.Email, mailer.ResendActivationTemplateFile, activationData)
 		if err != nil {
 			app.logger.Error("failed to send email", "err", err.Error())
 			return
