@@ -1,5 +1,7 @@
 package doc
 
+import "bookshop/internal/data"
+
 const BooksTag = "Books"
 
 func getBooksOperation() *Operation {
@@ -50,7 +52,16 @@ func getBookPropertySchema() *Schema {
 	component.AddProperty("id", "integer", "Generated id of the book property", true)
 	component.AddProperty("isbn", "string", "Unique book's ISBN", true)
 	component.AddProperty("book_id", "integer", "Generated id of the related book", true)
-	component.AddProperty("format", "string", "Format of the related book", true)
+	component.AddEnumProperty(
+		"format",
+		"string",
+		"Format of the related book",
+		true,
+		string(data.Paperback),
+		string(data.Hardcover),
+		string(data.Audiobook),
+		string(data.EBook),
+	)
 	component.AddProperty("language", "string", "Language of the related book", true)
 	component.AddProperty("price", "number", "Price of the related book in current format", true)
 	component.AddProperty("publisher", "string", "Publisher of the related book", true)
@@ -59,6 +70,15 @@ func getBookPropertySchema() *Schema {
 	component.AddProperty("illustrations", "string", "Illustrations of the related book", true)
 	component.AddProperty("page_number", "integer", "Number of pages of the related book", true)
 	component.AddProperty("available", "string", "Availability of the related book in current format", true)
+	component.AddEnumProperty(
+		"available",
+		"string",
+		"Availability of the related book in current format",
+		true,
+		string(data.Available),
+		string(data.NotAvailable),
+		string(data.Upcoming),
+	)
 	component.AddProperty("published_at", "string", "Publish date of the related book", true)
 
 	return component

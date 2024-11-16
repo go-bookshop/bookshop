@@ -7,6 +7,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
+	"gopkg.in/yaml.v3"
 )
 
 type Document struct {
@@ -143,6 +144,30 @@ func (s *Schema) AddProperty(name, propType, desc string, required bool) {
 	s.SchemaProxy.Schema().Properties.Set(name, base.CreateSchemaProxy(&base.Schema{
 		Type:        []string{propType},
 		Description: desc,
+	}))
+	if required {
+		s.SchemaProxy.Schema().Required = append(s.SchemaProxy.Schema().Required, name)
+	}
+}
+
+func (s *Schema) AddEnumProperty(name, propType, desc string, required bool, values ...string) {
+	if len(values) < 1 {
+		return
+	}
+
+	var enumValues []*yaml.Node
+	for _, v := range values {
+		n := &yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Value: v,
+		}
+
+		enumValues = append(enumValues, n)
+	}
+
+	s.SchemaProxy.Schema().Properties.Set(name, base.CreateSchemaProxy(&base.Schema{
+		Type: []string{propType},
+		Enum: enumValues,
 	}))
 	if required {
 		s.SchemaProxy.Schema().Required = append(s.SchemaProxy.Schema().Required, name)
