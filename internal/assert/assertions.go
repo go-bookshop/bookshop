@@ -78,7 +78,7 @@ func Zero(t *testing.T, value any, key string) {
 			t.Errorf("%q is expected to be zero", key)
 		}
 	default:
-		t.Fatal("type is not present in NonZero switch, add it")
+		t.Fatal("type is not present in Zero switch, add it")
 	}
 }
 
