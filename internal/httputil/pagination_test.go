@@ -165,6 +165,13 @@ func Test_BuildSortingQuery(t *testing.T) {
 			expected: "ORDER BY created_at desc",
 		},
 		{
+			name: "Nil sort by map",
+			paginationData: PaginationData{
+				SortBy: nil,
+			},
+			expected: "",
+		},
+		{
 			name: "Multiple sort by fields",
 			paginationData: PaginationData{
 				SortBy: map[string]string{

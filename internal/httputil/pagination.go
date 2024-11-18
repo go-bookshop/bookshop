@@ -103,6 +103,10 @@ func CalculateMaxPages(maxItems, pageSize int) int {
 }
 
 func (p *PaginationData) BuildSortingQuery() string {
+	if p.SortBy == nil {
+		return ""
+	}
+
 	sb := strings.Builder{}
 	sb.WriteString("ORDER BY ")
 
