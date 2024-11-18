@@ -14,7 +14,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		Data       []data.BookItem `json:"data"`
 	}
 
-	pagination, err := httputil.ParsePaginationQuery(r)
+	pagination, err := httputil.ParsePaginationQuery(r, data.BookItemSortKeyValidator)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return

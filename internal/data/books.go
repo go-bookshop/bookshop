@@ -70,6 +70,16 @@ type BookRepository struct {
 	DBPool *pgxpool.Pool
 }
 
+func BookItemSortKeyValidator(key string) bool {
+	if key != "avg_review" &&
+		key != "created_at" &&
+		key != "price" {
+		return false
+	}
+
+	return true
+}
+
 func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]BookItem, int, error) {
 	query := `
 SELECT 
@@ -105,6 +115,7 @@ WHERE
 	bp.available = $1
 GROUP BY
 	b.id, bp.id
+` + pd.BuildSortingQuery() + `
 OFFSET $2
 FETCH FIRST $3 ROWS ONLY;
 	`
