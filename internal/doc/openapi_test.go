@@ -139,6 +139,17 @@ func TestSchemaAddProperty(t *testing.T) {
 	assert.Equal(t, s.SchemaProxy.Schema().Required[0], "post")
 }
 
+func TestSchameAddRefSchemaProperty(t *testing.T) {
+	s := NewSchema()
+	r := NewRefSchema("test")
+	s.AddRefSchemaProperty("test", r, true)
+
+	val, ok := s.SchemaProxy.Schema().Properties.Get("test")
+	assert.True(t, ok)
+	assert.Equal(t, s.SchemaProxy.Schema().Required[0], "test")
+	assert.Equal(t, val.GetReference(), r.GetReference())
+}
+
 func TestSchemaAddSimpleArrayProperty(t *testing.T) {
 	s := NewSchema()
 	propertyName := "tags"

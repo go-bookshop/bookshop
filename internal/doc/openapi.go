@@ -151,6 +151,10 @@ func (s *Schema) AddProperty(name, propType, desc string, required bool) {
 }
 
 func (s *Schema) AddRefSchemaProperty(name string, refSchema *Schema, required bool) {
+	if !refSchema.IsReference() {
+		return
+	}
+
 	s.SchemaProxy.Schema().Properties.Set(name, &refSchema.SchemaProxy)
 	if required {
 		s.SchemaProxy.Schema().Required = append(s.SchemaProxy.Schema().Required, name)
