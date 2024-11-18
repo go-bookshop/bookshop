@@ -150,6 +150,13 @@ func (s *Schema) AddProperty(name, propType, desc string, required bool) {
 	}
 }
 
+func (s *Schema) AddRefSchemaProperty(name string, refSchema *Schema, required bool) {
+	s.SchemaProxy.Schema().Properties.Set(name, &refSchema.SchemaProxy)
+	if required {
+		s.SchemaProxy.Schema().Required = append(s.SchemaProxy.Schema().Required, name)
+	}
+}
+
 func (s *Schema) AddEnumProperty(name, propType, desc string, required bool, values ...string) {
 	if len(values) < 1 {
 		return

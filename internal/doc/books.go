@@ -40,8 +40,8 @@ func getBookItemComponentSchema() *Schema {
 	component.AddSimpleArrayProperty("image_urls", "string", "Book images url", true)
 	component.AddProperty("authors", "string", "Comma-separated list of authors of the book", true)
 
-	propertiesRefSchema := NewRefSchema("BookProperty")
-	component.AddSchemaArrayProperty("properties", "Properties of the book", propertiesRefSchema, true)
+	propertyRefSchema := NewRefSchema("BookProperty")
+	component.AddRefSchemaProperty("property", propertyRefSchema, true)
 
 	return component
 }
