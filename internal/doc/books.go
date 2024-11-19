@@ -8,6 +8,7 @@ func getBooksOperation() *Operation {
 	op := NewOperation("Get Books", "Returns paginated books result", []string{BooksTag})
 	op.AddQueryParameter("page", "integer", "Requested page number", false)
 	op.AddQueryParameter("size", "integer", "Number of items per page", false)
+	op.AddQueryParameter("sort", "string", "Sorting filters", false)
 
 	successSchema := NewSchema()
 
