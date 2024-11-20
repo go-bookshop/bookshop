@@ -26,13 +26,11 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "A",
-			Properties: []data.BookProperty{
-				{
-					ID:        1,
-					Format:    data.Paperback,
-					Available: data.Available,
-					Price:     100,
-				},
+			Property: data.BookProperty{
+				ID:        1,
+				Format:    data.Paperback,
+				Available: data.Available,
+				Price:     100,
 			},
 		},
 		{
@@ -46,13 +44,11 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "B",
-			Properties: []data.BookProperty{
-				{
-					ID:        2,
-					Format:    data.Paperback,
-					Available: data.Available,
-					Price:     100,
-				},
+			Property: data.BookProperty{
+				ID:        2,
+				Format:    data.Paperback,
+				Available: data.Available,
+				Price:     100,
 			},
 		},
 		{
@@ -66,13 +62,11 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "A, B",
-			Properties: []data.BookProperty{
-				{
-					ID:        3,
-					Format:    data.Paperback,
-					Available: data.Available,
-					Price:     100,
-				},
+			Property: data.BookProperty{
+				ID:        3,
+				Format:    data.Paperback,
+				Available: data.Available,
+				Price:     100,
 			},
 		},
 	}

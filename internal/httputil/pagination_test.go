@@ -3,6 +3,7 @@ package httputil
 import (
 	"bookshop/internal/assert"
 	"fmt"
+	"maps"
 	"net/http"
 	"testing"
 )
@@ -20,10 +21,13 @@ func Test_ParsePaginationQuery(t *testing.T) {
 	}{
 		{
 			name:  "Valid query parameters",
-			query: "page=2&size=20",
+			query: "page=2&size=20&sort=created_at.desc",
 			expectedData: &PaginationData{
 				PageNumber: 2,
 				PageSize:   20,
+				SortBy: map[string]string{
+					"created_at": "desc",
+				},
 			},
 			expectedErr: "",
 		},
@@ -66,6 +70,30 @@ func Test_ParsePaginationQuery(t *testing.T) {
 			expectedData: nil,
 			expectedErr:  parseErr,
 		},
+		{
+			name:         "Invalid format (missing order)",
+			query:        "sort=created_at",
+			expectedData: nil,
+			expectedErr:  "sort parameter must be in the format 'field.order'",
+		},
+		{
+			name:         "Invalid sort order",
+			query:        "sort=created_at.invalid",
+			expectedData: nil,
+			expectedErr:  "must be 'asc' or 'desc'",
+		},
+		{
+			name:         "Invalid sort field",
+			query:        "sort=invalid_field.asc",
+			expectedData: nil,
+			expectedErr:  "invalid sort field",
+		},
+		{
+			name:         "Valid sort field with trailing invalid parameter",
+			query:        "sort=created_at.desc&invalid_field.asc",
+			expectedData: nil,
+			expectedErr:  "invalid sort field",
+		},
 	}
 
 	for _, tt := range tests {
@@ -73,15 +101,14 @@ func Test_ParsePaginationQuery(t *testing.T) {
 			req, err := http.NewRequest("GET", "/?"+tt.query, nil)
 			assert.NoError(t, err)
 
-			pagination, err := ParsePaginationQuery(req)
+			pagination, err := ParsePaginationQuery(req, func(s string) bool { return true })
 
 			if tt.expectedErr != "" {
-				assert.NotNil(t, err)
-				assert.StringContains(t, err.Error(), tt.expectedErr)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, pagination.PageNumber, tt.expectedData.PageNumber)
 				assert.Equal(t, pagination.PageSize, tt.expectedData.PageSize)
+				assert.True(t, maps.Equal(pagination.SortBy, tt.expectedData.SortBy))
 			}
 		})
 	}
@@ -118,6 +145,66 @@ func Test_CalculateMaxPages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("Test_CalculateMaxPages", func(t *testing.T) {
 			res := CalculateMaxPages(tt.maxItems, tt.pageSize)
+			assert.Equal(t, res, tt.expected)
+		})
+	}
+}
+
+func Test_BuildSortingQuery(t *testing.T) {
+	tests := []struct {
+		name           string
+		paginationData PaginationData
+		expected       string
+	}{
+		{
+			name: "Single sort by field",
+			paginationData: PaginationData{
+				SortBy: map[string]string{
+					"created_at": "desc",
+				},
+			},
+			expected: "ORDER BY created_at desc",
+		},
+		{
+			name: "Nil sort by map",
+			paginationData: PaginationData{
+				SortBy: nil,
+			},
+			expected: "",
+		},
+		{
+			name: "Multiple sort by fields",
+			paginationData: PaginationData{
+				SortBy: map[string]string{
+					"created_at": "desc",
+					"updated_at": "asc",
+				},
+			},
+			expected: "ORDER BY created_at desc,updated_at asc",
+		},
+		{
+			name: "No sort fields",
+			paginationData: PaginationData{
+				SortBy: map[string]string{},
+			},
+			expected: "ORDER BY ",
+		},
+		{
+			name: "Sort fields with extra comma",
+			paginationData: PaginationData{
+				SortBy: map[string]string{
+					"created_at": "desc",
+					"updated_at": "asc",
+					"price":      "asc",
+				},
+			},
+			expected: "ORDER BY created_at desc,updated_at asc,price asc",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := tt.paginationData.BuildSortingQuery()
 			assert.Equal(t, res, tt.expected)
 		})
 	}

@@ -3,7 +3,6 @@ package data
 import (
 	"bookshop/internal/httputil"
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -30,8 +29,8 @@ type Book struct {
 
 type BookItem struct {
 	Book
-	Authors    string         `json:"authors"`
-	Properties []BookProperty `json:"properties"`
+	Authors  string       `json:"authors"`
+	Property BookProperty `json:"property"`
 }
 
 type BookFormat string
@@ -71,35 +70,18 @@ type BookRepository struct {
 	DBPool *pgxpool.Pool
 }
 
+func BookItemSortKeyValidator(key string) bool {
+	if key != "avg_review" &&
+		key != "created_at" &&
+		key != "price" {
+		return false
+	}
+
+	return true
+}
+
 func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]BookItem, int, error) {
 	query := `
-WITH 
-b_authors AS (
-    SELECT 
-        b.id AS book_id,
-        STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) AS authors
-    FROM 
-        books AS b
-    LEFT JOIN 
-        book_authors AS ba ON ba.book_id = b.id
-    LEFT JOIN 
-        authors AS a ON ba.author_id = a.id
-    GROUP BY 
-        b.id
-),
-b_properties AS (
-    SELECT 
-        b.id AS book_id,
-        JSON_AGG(JSON_BUILD_OBJECT('id', bp.id, 'format', bp.format, 'price', bp.price, 'available', bp.available)) AS properties
-    FROM 
-        books AS b
-    LEFT JOIN 
-        book_properties AS bp ON b.id = bp.book_id
-    WHERE 
-        bp.available = 'yes'
-    GROUP BY 
-        b.id
-)
 SELECT 
     b.id, 
     b.title, 
@@ -107,34 +89,49 @@ SELECT
     b.image_urls, 
     b.avg_review, 
     b.created_at, 
-    b.updated_at, 
-    ba.authors, 
-    bp.properties
+    b.updated_at,
+    STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) AS authors,
+	bp.id,
+	bp.isbn,
+	bp.format,
+	bp.language,
+	bp.price,
+	bp.publisher,
+	bp.target_audience,
+	bp.illustrator,
+	bp.illustrations,
+	bp.page_number,
+	bp.available,
+	bp.published_at
 FROM 
     books AS b
-LEFT JOIN 
-    b_authors AS ba ON ba.book_id = b.id
-LEFT JOIN 
-    b_properties AS bp ON bp.book_id = b.id
-WHERE 
-	bp.properties IS NOT NULL
-OFFSET $1
-FETCH FIRST $2 ROWS ONLY;
+INNER JOIN
+	book_authors AS ba ON ba.book_id = b.id
+INNER JOIN
+	authors AS a ON a.id = ba.author_id
+INNER JOIN
+	book_properties AS bp ON bp.book_id = b.id
+WHERE
+	bp.available = $1
+GROUP BY
+	b.id, bp.id
+` + pd.BuildSortingQuery() + `
+OFFSET $2
+FETCH FIRST $3 ROWS ONLY;
 	`
 	countQuery := `
 SELECT 
 	COUNT(*)
-FROM (
-	SELECT DISTINCT b.id
-	FROM books AS b
-	LEFT JOIN book_properties AS bp ON b.id = bp.book_id
-	WHERE bp.available = 'yes'
-)
+FROM 
+	books AS b
+INNER JOIN
+	book_properties AS bp ON bp.book_id = b.id
+WHERE bp.available = $1
 	`
 
 	batch := &pgx.Batch{}
-	batch.Queue(query, pd.PageNumber*pd.PageSize, pd.PageSize)
-	batch.Queue(countQuery)
+	batch.Queue(query, Available, pd.PageNumber*pd.PageSize, pd.PageSize)
+	batch.Queue(countQuery, Available)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -145,13 +142,12 @@ FROM (
 
 	rows, err := results.Query()
 	if err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var b BookItem
-		var propertiesJson []byte
+		b := BookItem{Property: BookProperty{}}
 
 		err = rows.Scan(
 			&b.ID,
@@ -162,17 +158,21 @@ FROM (
 			&b.CreatedAt,
 			&b.UpdatedAt,
 			&b.Authors,
-			&propertiesJson,
+			&b.Property.ID,
+			&b.Property.ISBN,
+			&b.Property.Format,
+			&b.Property.Language,
+			&b.Property.Price,
+			&b.Property.Publisher,
+			&b.Property.TargetAudience,
+			&b.Property.Illustrator,
+			&b.Property.Illustrations,
+			&b.Property.PageNumber,
+			&b.Property.Available,
+			&b.Property.PublishedAt,
 		)
 		if err != nil {
-			return nil, -1, err
-		}
-
-		if len(propertiesJson) > 0 {
-			err = json.Unmarshal(propertiesJson, &b.Properties)
-			if err != nil {
-				return nil, -1, err
-			}
+			return nil, 0, err
 		}
 
 		books = append(books, b)
@@ -181,11 +181,11 @@ FROM (
 	var booksCount int
 	err = results.QueryRow().Scan(&booksCount)
 	if err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 
 	if err = results.Close(); err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 
 	return books, booksCount, nil

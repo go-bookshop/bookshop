@@ -3,7 +3,6 @@ package main
 import (
 	"bookshop/internal/data"
 	"bookshop/internal/httputil"
-	"log/slog"
 	"net/http"
 )
 
@@ -15,7 +14,7 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		Data       []data.BookItem `json:"data"`
 	}
 
-	pagination, err := httputil.ParsePaginationQuery(r)
+	pagination, err := httputil.ParsePaginationQuery(r, data.BookItemSortKeyValidator)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -26,8 +25,6 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	app.logger.Info("number of all items: ", slog.Int("books_count", booksCount))
 
 	res := response{
 		PageNumber: pagination.PageNumber,
