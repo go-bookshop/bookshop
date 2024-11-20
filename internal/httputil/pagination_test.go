@@ -3,6 +3,7 @@ package httputil
 import (
 	"bookshop/internal/assert"
 	"fmt"
+	"maps"
 	"net/http"
 	"testing"
 )
@@ -107,7 +108,7 @@ func Test_ParsePaginationQuery(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, pagination.PageNumber, tt.expectedData.PageNumber)
 				assert.Equal(t, pagination.PageSize, tt.expectedData.PageSize)
-				assert.SliceEqual(t, pagination.SortBy, tt.expectedData.SortBy)
+				assert.True(t, maps.Equal(pagination.SortBy, tt.expectedData.SortBy))
 			}
 		})
 	}

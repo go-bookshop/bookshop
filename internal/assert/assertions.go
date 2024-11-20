@@ -21,19 +21,6 @@ func NotEqual[T comparable](t *testing.T, got, want T) {
 	}
 }
 
-func SliceEqual[T comparable](t *testing.T, got, want map[string]T) {
-	t.Helper()
-	if len(got) != len(want) {
-		t.Errorf("len of %v should be equal to a len of %v", got, want)
-	}
-
-	for k, v := range want {
-		if got[k] != v {
-			t.Errorf("got '%v' by key '%v', want '%v'", got[k], k, v)
-		}
-	}
-}
-
 func StringContains(t *testing.T, got, want string) {
 	t.Helper()
 	if !strings.Contains(got, want) {

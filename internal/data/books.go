@@ -142,7 +142,7 @@ WHERE bp.available = $1
 
 	rows, err := results.Query()
 	if err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -172,7 +172,7 @@ WHERE bp.available = $1
 			&b.Property.PublishedAt,
 		)
 		if err != nil {
-			return nil, -1, err
+			return nil, 0, err
 		}
 
 		books = append(books, b)
@@ -181,11 +181,11 @@ WHERE bp.available = $1
 	var booksCount int
 	err = results.QueryRow().Scan(&booksCount)
 	if err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 
 	if err = results.Close(); err != nil {
-		return nil, -1, err
+		return nil, 0, err
 	}
 
 	return books, booksCount, nil

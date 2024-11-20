@@ -23,8 +23,8 @@ func ParsePaginationQuery(r *http.Request, sortKeyValidator func(string) bool) (
 	pagination := &PaginationData{
 		PageNumber: 0,
 		PageSize:   10,
-		SortBy:     map[string]string{},
-		FilterBy:   map[string]string{},
+		SortBy:     make(map[string]string),
+		FilterBy:   make(map[string]string),
 	}
 
 	pageNumber := qs.Get("page")
@@ -107,7 +107,7 @@ func (p *PaginationData) BuildSortingQuery() string {
 		return ""
 	}
 
-	sb := strings.Builder{}
+	var sb strings.Builder
 	sb.WriteString("ORDER BY ")
 
 	for k, v := range p.SortBy {
