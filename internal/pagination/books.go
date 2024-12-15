@@ -133,10 +133,10 @@ func bookItemSortKeyValidator(key string) bool {
 func (bp *BookPaginationData) BuildFilterQuery() string {
 	var sb strings.Builder
 	sb.WriteString("WHERE ")
-	sb.WriteString(fmt.Sprintf("available = '%s'", models.Available))
+	sb.WriteString(fmt.Sprintf("\n\tavailable = '%s' AND", models.Available))
 
 	if len(bp.Format) > 0 {
-		sb.WriteString("\nformat IN (")
+		sb.WriteString("\n\tformat IN (")
 		for i, format := range bp.Format {
 			if i > 0 {
 				sb.WriteString(", ")
@@ -148,7 +148,7 @@ func (bp *BookPaginationData) BuildFilterQuery() string {
 	}
 
 	if len(bp.Category) > 0 {
-		sb.WriteString("\nc.id IN (")
+		sb.WriteString("\n\tc.id IN (")
 		for i, categoryID := range bp.Category {
 			if i > 0 {
 				sb.WriteString(", ")
@@ -160,12 +160,12 @@ func (bp *BookPaginationData) BuildFilterQuery() string {
 	}
 
 	if bp.MinPrice > 0 {
-		sb.WriteString(fmt.Sprintf("\nprice >= %v", bp.MinPrice))
+		sb.WriteString(fmt.Sprintf("\n\tprice >= %v", bp.MinPrice))
 		sb.WriteString("\nAND")
 	}
 
 	if bp.MaxPrice > 0 {
-		sb.WriteString(fmt.Sprintf("\nprice <= %v", bp.MaxPrice))
+		sb.WriteString(fmt.Sprintf("\n\tprice <= %v", bp.MaxPrice))
 	}
 
 	return strings.TrimSuffix(sb.String(), "AND")
