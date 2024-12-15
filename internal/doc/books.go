@@ -1,6 +1,8 @@
 package doc
 
-import "bookshop/internal/data"
+import (
+	"bookshop/internal/models"
+)
 
 const BooksTag = "Books"
 
@@ -55,10 +57,10 @@ func getBookPropertySchema() *Schema {
 		"string",
 		"Format of the related book",
 		false,
-		string(data.Paperback),
-		string(data.Hardcover),
-		string(data.Audiobook),
-		string(data.EBook),
+		string(models.Paperback),
+		string(models.Hardcover),
+		string(models.Audiobook),
+		string(models.EBook),
 	)
 	component.AddProperty("language", "string", "Language of the related book", false)
 	component.AddProperty("price", "number", "Price of the related book in current format", false)
@@ -73,9 +75,9 @@ func getBookPropertySchema() *Schema {
 		"string",
 		"Availability of the related book in current format",
 		false,
-		string(data.Available),
-		string(data.NotAvailable),
-		string(data.Upcoming),
+		string(models.Available),
+		string(models.NotAvailable),
+		string(models.Upcoming),
 	)
 	component.AddProperty("published_at", "string", "Publish date of the related book", false)
 

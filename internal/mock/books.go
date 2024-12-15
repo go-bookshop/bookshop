@@ -2,7 +2,8 @@ package mock
 
 import (
 	"bookshop/internal/data"
-	"bookshop/internal/httputil"
+	"bookshop/internal/models"
+	"bookshop/internal/pagination"
 	"time"
 )
 
@@ -13,10 +14,10 @@ func NewBookRepository() data.BookRepositoryInterface {
 type BookRepository struct {
 }
 
-func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem, int, error) {
-	books := []data.BookItem{
+func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.BookItem, int, error) {
+	books := []models.BookItem{
 		{
-			Book: data.Book{
+			Book: models.Book{
 				ID:        1,
 				Title:     "test",
 				Synopsis:  "something very interesting about this book",
@@ -26,15 +27,15 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "A",
-			Property: data.BookProperty{
+			Property: models.BookProperty{
 				ID:        1,
-				Format:    data.Paperback,
-				Available: data.Available,
+				Format:    models.Paperback,
+				Available: models.Available,
 				Price:     100,
 			},
 		},
 		{
-			Book: data.Book{
+			Book: models.Book{
 				ID:        2,
 				Title:     "test2",
 				Synopsis:  "something very interesting about this book",
@@ -44,15 +45,15 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "B",
-			Property: data.BookProperty{
+			Property: models.BookProperty{
 				ID:        2,
-				Format:    data.Paperback,
-				Available: data.Available,
+				Format:    models.Paperback,
+				Available: models.Available,
 				Price:     100,
 			},
 		},
 		{
-			Book: data.Book{
+			Book: models.Book{
 				ID:        3,
 				Title:     "test3",
 				Synopsis:  "something very interesting about this book",
@@ -62,10 +63,10 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 				UpdatedAt: time.Now(),
 			},
 			Authors: "A, B",
-			Property: data.BookProperty{
+			Property: models.BookProperty{
 				ID:        3,
-				Format:    data.Paperback,
-				Available: data.Available,
+				Format:    models.Paperback,
+				Available: models.Available,
 				Price:     100,
 			},
 		},
@@ -74,7 +75,7 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 
 	start := pd.PageNumber * pd.PageSize
 	if start >= booksLen {
-		return []data.BookItem{}, 1, nil
+		return []models.BookItem{}, 1, nil
 	}
 
 	end := start + pd.PageSize

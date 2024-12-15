@@ -2,7 +2,7 @@ package data
 
 import (
 	"bookshop/internal/assert"
-	"bookshop/internal/httputil"
+	"bookshop/internal/pagination"
 	"context"
 	"path/filepath"
 	"testing"
@@ -44,9 +44,11 @@ func (s *BookRepoTestSuite) TearDown(t *testing.T) {
 }
 
 func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
-	p := &httputil.PaginationData{
-		PageNumber: 0,
-		PageSize:   1,
+	p := &pagination.BookPaginationData{
+		PaginationData: &pagination.PaginationData{
+			PageNumber: 0,
+			PageSize:   1,
+		},
 	}
 
 	books, count, err := s.repository.GetBooks(p)

@@ -1,7 +1,8 @@
 package data
 
 import (
-	"bookshop/internal/httputil"
+	"bookshop/internal/models"
+	"bookshop/internal/pagination"
 	"context"
 	"time"
 
@@ -10,77 +11,18 @@ import (
 )
 
 type BookRepositoryInterface interface {
-	GetBooks(*httputil.PaginationData) ([]BookItem, int, error)
+	GetBooks(*pagination.BookPaginationData) ([]models.BookItem, int, error)
 }
 
 func NewBookRepository(DBPool *pgxpool.Pool) BookRepositoryInterface {
 	return &BookRepository{DBPool: DBPool}
 }
 
-type Book struct {
-	ID        int64     `json:"id"`
-	Title     string    `json:"title"`
-	Synopsis  string    `json:"synopsis"`
-	ImageUrls []string  `json:"images"`
-	AvgReview float32   `json:"avg_review"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-type BookItem struct {
-	Book
-	Authors  string       `json:"authors"`
-	Property BookProperty `json:"property"`
-}
-
-type BookFormat string
-
-const (
-	Audiobook BookFormat = "audiobook"
-	EBook     BookFormat = "e-book"
-	Paperback BookFormat = "paperback"
-	Hardcover BookFormat = "hardcover"
-)
-
-type BookAvailability string
-
-const (
-	Available    BookAvailability = "yes"
-	NotAvailable BookAvailability = "no"
-	Upcoming     BookAvailability = "upcoming"
-)
-
-type BookProperty struct {
-	ID             int64            `json:"id"`
-	ISBN           string           `json:"isbn"`
-	BookID         int64            `json:"book_id"`
-	Format         BookFormat       `json:"format"`
-	Language       string           `json:"language"`
-	Price          float64          `json:"price"`
-	Publisher      string           `json:"publisher"`
-	TargetAudience string           `json:"target_audience"`
-	Illustrator    string           `json:"illustrator"`
-	Illustrations  string           `json:"illustrations"`
-	PageNumber     int64            `json:"page_number"`
-	Available      BookAvailability `json:"available"`
-	PublishedAt    time.Time        `json:"published_at"`
-}
-
 type BookRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func BookItemSortKeyValidator(key string) bool {
-	if key != "avg_review" &&
-		key != "created_at" &&
-		key != "price" {
-		return false
-	}
-
-	return true
-}
-
-func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]BookItem, int, error) {
+func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.BookItem, int, error) {
 	query := `
 SELECT 
     b.id, 
@@ -111,13 +53,12 @@ INNER JOIN
 	authors AS a ON a.id = ba.author_id
 INNER JOIN
 	book_properties AS bp ON bp.book_id = b.id
-WHERE
-	bp.available = $1
+` + pd.BuildFilterQuery() + `	
 GROUP BY
 	b.id, bp.id
 ` + pd.BuildSortingQuery() + `
-OFFSET $2
-FETCH FIRST $3 ROWS ONLY;
+OFFSET $1
+FETCH FIRST $2 ROWS ONLY;
 	`
 	countQuery := `
 SELECT 
@@ -126,19 +67,18 @@ FROM
 	books AS b
 INNER JOIN
 	book_properties AS bp ON bp.book_id = b.id
-WHERE bp.available = $1
-	`
+` + pd.BuildFilterQuery()
 
 	batch := &pgx.Batch{}
-	batch.Queue(query, Available, pd.PageNumber*pd.PageSize, pd.PageSize)
-	batch.Queue(countQuery, Available)
+	batch.Queue(query, pd.PageNumber*pd.PageSize, pd.PageSize)
+	batch.Queue(countQuery)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	results := r.DBPool.SendBatch(ctx, batch)
 
-	books := []BookItem{}
+	books := []models.BookItem{}
 
 	rows, err := results.Query()
 	if err != nil {
@@ -147,7 +87,7 @@ WHERE bp.available = $1
 	defer rows.Close()
 
 	for rows.Next() {
-		b := BookItem{Property: BookProperty{}}
+		b := models.BookItem{Property: models.BookProperty{}}
 
 		err = rows.Scan(
 			&b.ID,

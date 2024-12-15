@@ -2,6 +2,7 @@ package data
 
 import (
 	"bookshop/internal/assert"
+	"bookshop/internal/models"
 	"context"
 	"testing"
 
@@ -36,7 +37,7 @@ func (s *AuthorRepoTestSuite) TearDown(t *testing.T) {
 }
 
 func (s *AuthorRepoTestSuite) TestAuthorRepository_Insert(t *testing.T) {
-	author := Author{
+	author := models.Author{
 		Name: "Evhen Petrenko",
 		Bio:  "Born in Kyiv in 1913",
 	}

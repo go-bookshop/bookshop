@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bookshop/internal/models"
 	"bookshop/internal/validator"
 	"context"
 	"fmt"
@@ -10,40 +11,27 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const (
-	AuthorNameMaxLength = 1000
-	AuthorBioMaxLength  = 2000
-)
-
 type AuthorRepositoryInterface interface {
-	Insert(a *Author) error
+	Insert(a *models.Author) error
 }
 
 func NewAuthorRepository(DBPool *pgxpool.Pool) AuthorRepositoryInterface {
 	return &AuthorRepository{DBPool: DBPool}
 }
 
-type Author struct {
-	ID        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Bio       string    `json:"bio"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
-}
-
-func ValidateAuthor(v *validator.Validator, a *Author) {
+func ValidateAuthor(v *validator.Validator, a *models.Author) {
 	v.Check(strings.TrimSpace(a.Name) != "", "name", "must be provided")
-	v.Check(len(a.Name) <= AuthorNameMaxLength, "name", fmt.Sprintf("must be less than %d bytes long", AuthorNameMaxLength))
+	v.Check(len(a.Name) <= models.AuthorNameMaxLength, "name", fmt.Sprintf("must be less than %d bytes long", models.AuthorNameMaxLength))
 
 	v.Check(strings.TrimSpace(a.Bio) != "", "bio", "must be provided")
-	v.Check(len(a.Bio) <= AuthorNameMaxLength, "bio", fmt.Sprintf("must be less than %d bytes long", AuthorBioMaxLength))
+	v.Check(len(a.Bio) <= models.AuthorNameMaxLength, "bio", fmt.Sprintf("must be less than %d bytes long", models.AuthorBioMaxLength))
 }
 
 type AuthorRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (r *AuthorRepository) Insert(a *Author) error {
+func (r *AuthorRepository) Insert(a *models.Author) error {
 	query := `
 insert into authors(name, bio)
 values ($1, $2)

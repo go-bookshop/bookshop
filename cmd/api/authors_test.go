@@ -2,7 +2,7 @@ package main
 
 import (
 	"bookshop/internal/assert"
-	"bookshop/internal/data"
+	"bookshop/internal/models"
 	"fmt"
 	"net/http"
 	"strings"
@@ -62,15 +62,15 @@ func TestAuthors_createAuthorHandler(t *testing.T) {
 			name:        "Invalid Author Name Max Length",
 			endpoint:    "/v1/authors",
 			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    fmt.Sprintf("must be less than %d bytes", data.AuthorNameMaxLength),
-			requestBody: fmt.Sprintf(`{"name":"%s","bio":"Born today"}`, strings.Repeat("a", data.AuthorNameMaxLength+1)),
+			wantBody:    fmt.Sprintf("must be less than %d bytes", models.AuthorNameMaxLength),
+			requestBody: fmt.Sprintf(`{"name":"%s","bio":"Born today"}`, strings.Repeat("a", models.AuthorNameMaxLength+1)),
 		},
 		{
 			name:        "Invalid Author Bio Max Length",
 			endpoint:    "/v1/authors",
 			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    fmt.Sprintf("must be less than %d bytes", data.AuthorBioMaxLength),
-			requestBody: fmt.Sprintf(`{"name":"Igor Olympic","bio":"%s"}`, strings.Repeat("a", data.AuthorBioMaxLength+1)),
+			wantBody:    fmt.Sprintf("must be less than %d bytes", models.AuthorBioMaxLength),
+			requestBody: fmt.Sprintf(`{"name":"Igor Olympic","bio":"%s"}`, strings.Repeat("a", models.AuthorBioMaxLength+1)),
 		},
 		{
 			name:        "Unexpected error from DbPool",
