@@ -5,6 +5,8 @@ import (
 	"bookshop/internal/models"
 	"bookshop/internal/pagination"
 	"time"
+
+	"github.com/govalues/decimal"
 )
 
 func NewBookRepository() data.BookRepositoryInterface {
@@ -14,7 +16,7 @@ func NewBookRepository() data.BookRepositoryInterface {
 type BookRepository struct {
 }
 
-func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.BookItem, int, error) {
+func (r *BookRepository) GetBooks(pd *pagination.MetaData, bf *pagination.BookFilters) ([]models.BookItem, int, error) {
 	books := []models.BookItem{
 		{
 			Book: models.Book{
@@ -31,7 +33,7 @@ func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.B
 				ID:        1,
 				Format:    models.Paperback,
 				Available: models.Available,
-				Price:     100,
+				Price:     decimal.Hundred,
 			},
 		},
 		{
@@ -49,7 +51,7 @@ func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.B
 				ID:        2,
 				Format:    models.Paperback,
 				Available: models.Available,
-				Price:     100,
+				Price:     decimal.Hundred,
 			},
 		},
 		{
@@ -67,7 +69,7 @@ func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.B
 				ID:        3,
 				Format:    models.Paperback,
 				Available: models.Available,
-				Price:     100,
+				Price:     decimal.Hundred,
 			},
 		},
 	}

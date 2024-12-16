@@ -11,7 +11,7 @@ import (
 )
 
 type BookRepositoryInterface interface {
-	GetBooks(*pagination.BookPaginationData) ([]models.BookItem, int, error)
+	GetBooks(*pagination.MetaData, *pagination.BookFilters) ([]models.BookItem, int, error)
 }
 
 func NewBookRepository(DBPool *pgxpool.Pool) BookRepositoryInterface {
@@ -22,7 +22,7 @@ type BookRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (r *BookRepository) GetBooks(pd *pagination.BookPaginationData) ([]models.BookItem, int, error) {
+func (r *BookRepository) GetBooks(pd *pagination.MetaData, filters *pagination.BookFilters) ([]models.BookItem, int, error) {
 	query := `
 SELECT 
     b.id, 
@@ -53,7 +53,7 @@ INNER JOIN
 	authors AS a ON a.id = ba.author_id
 INNER JOIN
 	book_properties AS bp ON bp.book_id = b.id
-` + pd.BuildFilterQuery() + `	
+` + filters.BuildFilterQuery() + `	
 GROUP BY
 	b.id, bp.id
 ` + pd.BuildSortingQuery() + `
@@ -67,7 +67,7 @@ FROM
 	books AS b
 INNER JOIN
 	book_properties AS bp ON bp.book_id = b.id
-` + pd.BuildFilterQuery()
+` + filters.BuildFilterQuery()
 
 	batch := &pgx.Batch{}
 	batch.Queue(query, pd.PageNumber*pd.PageSize, pd.PageSize)

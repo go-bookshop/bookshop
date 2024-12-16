@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/govalues/decimal"
 )
 
 const (
@@ -15,66 +17,68 @@ const (
 	maxPriceParam = "max_price"
 )
 
-type BookPaginationData struct {
-	*PaginationData
-	Format   []string
-	Category []int64
-	MinPrice float64
-	MaxPrice float64
+type BookFilters struct {
+	Availability string
+	Format       []models.BookFormat
+	Category     []int64
+	MinPrice     decimal.Decimal
+	MaxPrice     decimal.Decimal
 }
 
-func ParseBookPaginationQuery(r *http.Request) (*BookPaginationData, error) {
+func ParseBookPaginationQuery(r *http.Request) (*MetaData, *BookFilters, error) {
 	qs := r.URL.Query()
 
-	p, err := ParsePaginationData(r, bookItemSortKeyValidator)
+	paginationData, err := ParsePaginationMetaData(r, bookItemSortKeyValidator)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	bp := &BookPaginationData{PaginationData: p}
+	filters := &BookFilters{
+		Availability: string(models.Available),
+		Format:       []models.BookFormat{models.Paperback},
+	}
 
 	if formats, err := parseAndValidateFormats(qs.Get(formatParam)); err != nil {
-		return nil, err
+		return nil, nil, err
 	} else if len(formats) > 0 {
-		bp.Format = formats
-	} else {
-		bp.Format = []string{string(models.Paperback)}
+		filters.Format = formats
 	}
 
-	if categories, err := parseCategories(qs.Get(categoryParam)); err != nil {
-		return nil, err
-	} else {
-		bp.Category = categories
+	categories, err := parseCategories(qs.Get(categoryParam))
+	if err != nil {
+		return nil, nil, err
 	}
+	filters.Category = categories
 
-	if minPrice, maxPrice, err := parseMinMaxPrice(qs.Get(minPriceParam), qs.Get(maxPriceParam)); err != nil {
-		return nil, err
-	} else {
-		bp.MinPrice = minPrice
-		bp.MaxPrice = maxPrice
+	minPrice, maxPrice, err := parseMinMaxPrice(qs.Get(minPriceParam), qs.Get(maxPriceParam))
+	if err != nil {
+		return nil, nil, err
 	}
+	filters.MinPrice = minPrice
+	filters.MaxPrice = maxPrice
 
-	return bp, nil
+	return paginationData, filters, nil
 }
 
-func parseAndValidateFormats(formatParam string) ([]string, error) {
+func parseAndValidateFormats(formatParam string) ([]models.BookFormat, error) {
 	if formatParam == "" {
 		return nil, nil
 	}
 
+	var formatsMap []models.BookFormat
 	formats := strings.Split(formatParam, ",")
-	validFormats := []string{}
 
 	for _, f := range formats {
-		switch models.BookFormat(f) {
+		bookFormat := models.BookFormat(f)
+		switch bookFormat {
 		case models.Audiobook, models.EBook, models.Hardcover, models.Paperback:
-			validFormats = append(validFormats, f)
+			formatsMap = append(formatsMap, bookFormat)
 		default:
 			return nil, fmt.Errorf("invalid book format parameter: %v", f)
 		}
 	}
 
-	return validFormats, nil
+	return formatsMap, nil
 }
 
 func parseCategories(categoryParam string) ([]int64, error) {
@@ -96,24 +100,24 @@ func parseCategories(categoryParam string) ([]int64, error) {
 	return categoryIDs, nil
 }
 
-func parseMinMaxPrice(minPriceParam, maxPriceParam string) (float64, float64, error) {
-	var minPrice, maxPrice float64
+func parseMinMaxPrice(minPriceParam, maxPriceParam string) (decimal.Decimal, decimal.Decimal, error) {
+	var minPrice, maxPrice decimal.Decimal
 	var err error
 
 	if minPriceParam != "" {
-		minPrice, err = strconv.ParseFloat(minPriceParam, 64)
+		minPrice, err = decimal.ParseExact(minPriceParam, 5)
 		if err != nil {
-			return 0, 0, fmt.Errorf("invalid min price %v: %w", minPriceParam, err)
+			return decimal.Zero, decimal.Zero, fmt.Errorf("invalid min price %v: %w", minPriceParam, err)
 		}
 	}
 
 	if maxPriceParam != "" {
-		maxPrice, err = strconv.ParseFloat(maxPriceParam, 64)
+		maxPrice, err = decimal.ParseExact(maxPriceParam, 5)
 		if err != nil {
-			return 0, 0, fmt.Errorf("invalid max price %v: %w", maxPriceParam, err)
+			return decimal.Zero, decimal.Zero, fmt.Errorf("invalid max price %v: %w", maxPriceParam, err)
 		}
-		if minPrice > 0 && maxPrice <= minPrice {
-			return 0, 0, fmt.Errorf("max price must be greater than min price. min: %v, max: %v", minPrice, maxPrice)
+		if minPrice.Cmp(decimal.Zero) > 0 && maxPrice.Cmp(minPrice) < 1 {
+			return decimal.Zero, decimal.Zero, fmt.Errorf("max price must be greater than min price. min: %v, max: %v", minPrice.Rescale(2), maxPrice.Rescale(2))
 		}
 	}
 
@@ -130,14 +134,14 @@ func bookItemSortKeyValidator(key string) bool {
 	return true
 }
 
-func (bp *BookPaginationData) BuildFilterQuery() string {
+func (bf *BookFilters) BuildFilterQuery() string {
 	var sb strings.Builder
 	sb.WriteString("WHERE ")
-	sb.WriteString(fmt.Sprintf("\n\tavailable = '%s' AND", models.Available))
+	sb.WriteString(fmt.Sprintf("\n\tavailable = '%s' AND", bf.Availability))
 
-	if len(bp.Format) > 0 {
+	if len(bf.Format) > 0 {
 		sb.WriteString("\n\tformat IN (")
-		for i, format := range bp.Format {
+		for i, format := range bf.Format {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
@@ -147,9 +151,9 @@ func (bp *BookPaginationData) BuildFilterQuery() string {
 		sb.WriteString("\nAND")
 	}
 
-	if len(bp.Category) > 0 {
+	if len(bf.Category) > 0 {
 		sb.WriteString("\n\tc.id IN (")
-		for i, categoryID := range bp.Category {
+		for i, categoryID := range bf.Category {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
@@ -159,13 +163,13 @@ func (bp *BookPaginationData) BuildFilterQuery() string {
 		sb.WriteString("\nAND")
 	}
 
-	if bp.MinPrice > 0 {
-		sb.WriteString(fmt.Sprintf("\n\tprice >= %v", bp.MinPrice))
+	if bf.MinPrice.Cmp(decimal.Zero) > 0 {
+		sb.WriteString(fmt.Sprintf("\n\tprice >= %v", bf.MinPrice))
 		sb.WriteString("\nAND")
 	}
 
-	if bp.MaxPrice > 0 {
-		sb.WriteString(fmt.Sprintf("\n\tprice <= %v", bp.MaxPrice))
+	if bf.MaxPrice.Cmp(decimal.Zero) > 0 {
+		sb.WriteString(fmt.Sprintf("\n\tprice <= %v", bf.MaxPrice))
 	}
 
 	return strings.TrimSuffix(sb.String(), "AND")

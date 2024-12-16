@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/govalues/decimal"
+)
 
 type Book struct {
 	ID        int64     `json:"id"`
@@ -41,7 +45,7 @@ type BookProperty struct {
 	BookID         int64            `json:"book_id"`
 	Format         BookFormat       `json:"format"`
 	Language       string           `json:"language"`
-	Price          float64          `json:"price"`
+	Price          decimal.Decimal  `json:"price"`
 	Publisher      string           `json:"publisher"`
 	TargetAudience string           `json:"target_audience"`
 	Illustrator    string           `json:"illustrator"`

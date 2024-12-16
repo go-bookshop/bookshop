@@ -17,13 +17,13 @@ const (
 	maxPageSize     = 100
 )
 
-type PaginationData struct {
+type MetaData struct {
 	PageNumber int
 	PageSize   int
 	SortBy     map[string]string
 }
 
-func ParsePaginationData(r *http.Request, sortKeyValidator func(string) bool) (*PaginationData, error) {
+func ParsePaginationMetaData(r *http.Request, sortKeyValidator func(string) bool) (*MetaData, error) {
 	qs := r.URL.Query()
 
 	pageNumber, err := parsePageNumber(qs.Get(pageNumberParam))
@@ -41,7 +41,7 @@ func ParsePaginationData(r *http.Request, sortKeyValidator func(string) bool) (*
 		return nil, fmt.Errorf("failed to parse sort parameter: %w", err)
 	}
 
-	return &PaginationData{
+	return &MetaData{
 		PageNumber: pageNumber,
 		PageSize:   pageSize,
 		SortBy:     sortBy,
@@ -128,7 +128,7 @@ func CalculateMaxPages(maxItems, pageSize int) int {
 	return (maxItems + pageSize - 1) / pageSize
 }
 
-func (p *PaginationData) BuildSortingQuery() string {
+func (p *MetaData) BuildSortingQuery() string {
 	if len(p.SortBy) == 0 {
 		return ""
 	}

@@ -2,6 +2,7 @@ package data
 
 import (
 	"bookshop/internal/assert"
+	"bookshop/internal/models"
 	"bookshop/internal/pagination"
 	"context"
 	"path/filepath"
@@ -44,14 +45,15 @@ func (s *BookRepoTestSuite) TearDown(t *testing.T) {
 }
 
 func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
-	p := &pagination.BookPaginationData{
-		PaginationData: &pagination.PaginationData{
-			PageNumber: 0,
-			PageSize:   1,
-		},
+	p := &pagination.MetaData{
+		PageNumber: 0,
+		PageSize:   5,
+	}
+	bf := &pagination.BookFilters{
+		Availability: string(models.Available),
 	}
 
-	books, count, err := s.repository.GetBooks(p)
+	books, count, err := s.repository.GetBooks(p, bf)
 	assert.NoError(t, err)
 	assert.Equal(t, count, 5)
 	assert.Equal(t, len(books), p.PageSize)

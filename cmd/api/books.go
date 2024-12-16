@@ -15,22 +15,22 @@ func (app *application) getBooksHandler(w http.ResponseWriter, r *http.Request) 
 		Data       []models.BookItem `json:"data"`
 	}
 
-	bp, err := pagination.ParseBookPaginationQuery(r)
+	metadata, filters, err := pagination.ParseBookPaginationQuery(r)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	books, booksCount, err := app.repositories.BookRepository.GetBooks(bp)
+	books, booksCount, err := app.repositories.BookRepository.GetBooks(metadata, filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	res := response{
-		PageNumber: bp.PageNumber,
-		PageSize:   bp.PageSize,
-		MaxPages:   pagination.CalculateMaxPages(booksCount, bp.PageSize),
+		PageNumber: metadata.PageNumber,
+		PageSize:   metadata.PageSize,
+		MaxPages:   pagination.CalculateMaxPages(booksCount, metadata.PageSize),
 		Data:       books,
 	}
 
