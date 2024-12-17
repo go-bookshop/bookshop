@@ -6,7 +6,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,63 +23,98 @@ type BookRepository struct {
 
 func (r *BookRepository) GetBooks(pd *pagination.MetaData, filters *pagination.BookFilters) ([]models.BookItem, int, error) {
 	query := `
+WITH filtered_books AS (
+    SELECT 
+        b.id, 
+        b.title, 
+        b.synopsis, 
+        b.image_urls, 
+        b.avg_review, 
+        b.created_at, 
+        b.updated_at,
+        STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) AS authors,
+        bp.id AS book_property_id,
+        bp.isbn,
+        bp.format,
+        bp.language,
+        bp.price,
+        bp.publisher,
+        bp.target_audience,
+        bp.illustrator,
+        bp.illustrations,
+        bp.page_number,
+        bp.available,
+        bp.published_at
+    FROM 
+        books AS b
+    INNER JOIN
+        book_authors AS ba ON ba.book_id = b.id
+    INNER JOIN
+        authors AS a ON a.id = ba.author_id
+    INNER JOIN
+        book_properties AS bp ON bp.book_id = b.id
+    INNER JOIN 
+        book_categories AS bc ON bc.book_id = b.id
+    INNER JOIN 
+        categories AS c ON c.id = bc.category_id
+` + filters.BuildFilterQuery() + `
+    GROUP BY 
+        b.id, bp.id
+),
+book_categories_agg AS (
+    SELECT
+        b.id AS book_id,
+        STRING_AGG(DISTINCT c.name, ', ' ORDER BY c.name) AS categories
+    FROM 
+        books AS b
+    INNER JOIN 
+        book_categories AS bc ON bc.book_id = b.id
+    INNER JOIN 
+        categories AS c ON c.id = bc.category_id
+    WHERE 
+        b.id IN (SELECT id FROM filtered_books)
+    GROUP BY 
+        b.id
+)
 SELECT 
-    b.id, 
-    b.title, 
-    b.synopsis, 
-    b.image_urls, 
-    b.avg_review, 
-    b.created_at, 
-    b.updated_at,
-    STRING_AGG(DISTINCT a.name, ', ' ORDER BY a.name) AS authors,
-	bp.id,
-	bp.isbn,
-	bp.format,
-	bp.language,
-	bp.price,
-	bp.publisher,
-	bp.target_audience,
-	bp.illustrator,
-	bp.illustrations,
-	bp.page_number,
-	bp.available,
-	bp.published_at
+    COUNT(*) OVER () AS total_items,
+    fb.id, 
+    fb.title, 
+    fb.synopsis, 
+    fb.image_urls, 
+    fb.avg_review, 
+    fb.created_at, 
+    fb.updated_at,
+    fb.book_property_id,
+    fb.isbn,
+    fb.format,
+    fb.language,
+    fb.price,
+    fb.publisher,
+    fb.target_audience,
+    fb.illustrator,
+    fb.illustrations,
+    fb.page_number,
+    fb.available,
+    fb.published_at,
+	fb.authors,
+    bca.categories
 FROM 
-    books AS b
-INNER JOIN
-	book_authors AS ba ON ba.book_id = b.id
-INNER JOIN
-	authors AS a ON a.id = ba.author_id
-INNER JOIN
-	book_properties AS bp ON bp.book_id = b.id
-` + filters.BuildFilterQuery() + `	
-GROUP BY
-	b.id, bp.id
-` + pd.BuildSortingQuery() + `
+    filtered_books AS fb
+INNER JOIN 
+    book_categories_agg AS bca ON bca.book_id = fb.id
+` + pd.BuildSortingQuery() + `	
 OFFSET $1
 FETCH FIRST $2 ROWS ONLY;
 	`
-	countQuery := `
-SELECT 
-	COUNT(*)
-FROM 
-	books AS b
-INNER JOIN
-	book_properties AS bp ON bp.book_id = b.id
-` + filters.BuildFilterQuery()
-
-	batch := &pgx.Batch{}
-	batch.Queue(query, pd.PageNumber*pd.PageSize, pd.PageSize)
-	batch.Queue(countQuery)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	results := r.DBPool.SendBatch(ctx, batch)
+	var books []models.BookItem
+	var booksCount int
+	rows, err := r.DBPool.Query(ctx, query, pd.PageNumber*pd.PageSize, pd.PageSize)
 
-	books := []models.BookItem{}
-
-	rows, err := results.Query()
 	if err != nil {
 		return nil, 0, err
 	}
@@ -90,6 +124,7 @@ INNER JOIN
 		b := models.BookItem{Property: models.BookProperty{}}
 
 		err = rows.Scan(
+			&booksCount,
 			&b.ID,
 			&b.Title,
 			&b.Synopsis,
@@ -97,7 +132,6 @@ INNER JOIN
 			&b.AvgReview,
 			&b.CreatedAt,
 			&b.UpdatedAt,
-			&b.Authors,
 			&b.Property.ID,
 			&b.Property.ISBN,
 			&b.Property.Format,
@@ -110,22 +144,14 @@ INNER JOIN
 			&b.Property.PageNumber,
 			&b.Property.Available,
 			&b.Property.PublishedAt,
+			&b.Authors,
+			&b.Categories,
 		)
 		if err != nil {
 			return nil, 0, err
 		}
 
 		books = append(books, b)
-	}
-
-	var booksCount int
-	err = results.QueryRow().Scan(&booksCount)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if err = results.Close(); err != nil {
-		return nil, 0, err
 	}
 
 	return books, booksCount, nil

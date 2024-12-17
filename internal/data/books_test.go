@@ -64,6 +64,7 @@ func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
 		assert.NonZero(t, b.CreatedAt, "created_at")
 		assert.NonZero(t, b.UpdatedAt, "updated_at")
 		assert.NonZero(t, b.Authors, "authors")
+		assert.NonZero(t, b.Categories, "categories")
 		assert.NotNil(t, b.Property)
 		assert.NotNil(t, b.ImageUrls)
 		assert.True(t, b.AvgReview >= 0)

@@ -20,6 +20,17 @@ VALUES
     (3, 3), (4, 4),
     (5, 5);
 
+INSERT INTO categories (name, description)
+VALUES
+    ('Fantasy', 'A genre of speculative fiction involving magical elements, often set in imaginary worlds.'),
+    ('Adventure', 'A genre of fiction that typically features a journey, exploration, or quest.');
+
+INSERT INTO book_categories (book_id, category_id)
+VALUES
+    (1, 1), (2, 1),
+    (3, 1), (4, 1),
+    (5, 1);
+
 INSERT INTO book_properties (isbn, book_id, format, language, price, publisher, target_audience, illustrator, illustrations, page_number, available, published_at)
 VALUES
     ('978-0747532699', 1, 'paperback', 'English', 19.99, 'Bloomsbury', 'Young Adult', '', '', 223, 'yes', '1997-06-26'),

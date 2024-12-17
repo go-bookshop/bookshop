@@ -17,9 +17,16 @@ type Book struct {
 }
 
 type BookItem struct {
-	Book
-	Authors  string       `json:"authors"`
-	Property BookProperty `json:"property"`
+	ID         int64        `json:"id"`
+	Title      string       `json:"title"`
+	Synopsis   string       `json:"synopsis"`
+	ImageUrls  []string     `json:"images"`
+	AvgReview  float32      `json:"avg_review"`
+	CreatedAt  time.Time    `json:"-"`
+	UpdatedAt  time.Time    `json:"-"`
+	Authors    string       `json:"authors"`
+	Categories string       `json:"categories"`
+	Property   BookProperty `json:"property"`
 }
 
 type BookFormat string
