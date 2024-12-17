@@ -2,15 +2,20 @@ package doc
 
 import (
 	"bookshop/internal/models"
+	"bookshop/internal/pagination"
 )
 
 const BooksTag = "Books"
 
 func getBooksOperation() *Operation {
 	op := NewOperation("Get Books", "Returns paginated books result", []string{BooksTag})
-	op.AddQueryParameter("page", "integer", "Requested page number", false)
-	op.AddQueryParameter("size", "integer", "Number of items per page", false)
-	op.AddQueryParameter("sort", "string", "Sorting filters", false)
+	op.AddQueryParameter(pagination.PageNumberParam, "integer", "Requested page number", false)
+	op.AddQueryParameter(pagination.PageSizeParam, "integer", "Number of items per page", false)
+	op.AddQueryParameter(pagination.SortParam, "string", "Sorting filters", false)
+	op.AddQueryParameter(pagination.BookFormatParam, "string", "Book formats filter", false)
+	op.AddQueryParameter(pagination.BookCategoryParam, "string", "Book categories filter", false)
+	op.AddQueryParameter(pagination.BookMinPriceParam, "number", "Book's minimal price", false)
+	op.AddQueryParameter(pagination.BookMinPriceParam, "number", "Book's maximal price", false)
 
 	successSchema := NewSchema()
 
@@ -39,6 +44,7 @@ func getBookItemComponentSchema() *Schema {
 	component.AddProperty("avg_review", "number", "Average reviews of the book", false)
 	component.AddSimpleArrayProperty("image_urls", "string", "Book images url", false)
 	component.AddProperty("authors", "string", "Comma-separated list of authors of the book", false)
+	component.AddProperty("categories", "string", "Comma-separated list of book's categories", false)
 
 	propertyRefSchema := NewRefSchema("BookProperty")
 	component.AddRefSchemaProperty("property", propertyRefSchema, false)

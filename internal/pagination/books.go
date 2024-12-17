@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	formatParam   = "format"
-	categoryParam = "category"
-	minPriceParam = "min_price"
-	maxPriceParam = "max_price"
+	BookFormatParam   = "format"
+	BookCategoryParam = "category"
+	BookMinPriceParam = "min_price"
+	BookMaxPriceParam = "max_price"
 )
 
 type BookFilters struct {
@@ -38,19 +38,19 @@ func ParseBookPaginationQuery(r *http.Request) (*MetaData, *BookFilters, error) 
 		Format:       []models.BookFormat{models.Paperback},
 	}
 
-	if formats, err := parseAndValidateFormats(qs.Get(formatParam)); err != nil {
+	if formats, err := parseAndValidateFormats(qs.Get(BookFormatParam)); err != nil {
 		return nil, nil, err
 	} else if len(formats) > 0 {
 		filters.Format = formats
 	}
 
-	categories, err := parseCategories(qs.Get(categoryParam))
+	categories, err := parseCategories(qs.Get(BookCategoryParam))
 	if err != nil {
 		return nil, nil, err
 	}
 	filters.Category = categories
 
-	minPrice, maxPrice, err := parseMinMaxPrice(qs.Get(minPriceParam), qs.Get(maxPriceParam))
+	minPrice, maxPrice, err := parseMinMaxPrice(qs.Get(BookMinPriceParam), qs.Get(BookMaxPriceParam))
 	if err != nil {
 		return nil, nil, err
 	}

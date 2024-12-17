@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	pageNumberParam = "page"
-	pageSizeParam   = "size"
-	sortParam       = "sort"
+	PageNumberParam = "page"
+	PageSizeParam   = "size"
+	SortParam       = "sort"
 
 	defaultPageSize = 10
 	maxPageSize     = 100
@@ -26,17 +26,17 @@ type MetaData struct {
 func ParsePaginationMetaData(r *http.Request, sortKeyValidator func(string) bool) (*MetaData, error) {
 	qs := r.URL.Query()
 
-	pageNumber, err := parsePageNumber(qs.Get(pageNumberParam))
+	pageNumber, err := parsePageNumber(qs.Get(PageNumberParam))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse page number: %w", err)
 	}
 
-	pageSize, err := parsePageSize(qs.Get(pageSizeParam))
+	pageSize, err := parsePageSize(qs.Get(PageSizeParam))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse page size: %w", err)
 	}
 
-	sortBy, err := parseSortQuery(qs.Get(sortParam), sortKeyValidator)
+	sortBy, err := parseSortQuery(qs.Get(SortParam), sortKeyValidator)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse sort parameter: %w", err)
 	}
