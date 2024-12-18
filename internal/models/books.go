@@ -61,3 +61,12 @@ type BookProperty struct {
 	Available      BookAvailability `json:"available"`
 	PublishedAt    time.Time        `json:"published_at"`
 }
+
+func (f BookFormat) Validate() bool {
+	switch f {
+	case Audiobook, EBook, Hardcover, Paperback:
+		return true
+	default:
+		return false
+	}
+}

@@ -50,7 +50,7 @@ func (s *BookRepoTestSuite) TestBookRepository_GetBooks(t *testing.T) {
 		PageSize:   5,
 	}
 	bf := &pagination.BookFilters{
-		Availability: string(models.Available),
+		BookAvailability: models.Available,
 	}
 
 	books, count, err := s.repository.GetBooks(p, bf)

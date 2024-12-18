@@ -18,11 +18,11 @@ const (
 )
 
 type BookFilters struct {
-	Availability string
-	Format       []models.BookFormat
-	Category     []int64
-	MinPrice     decimal.Decimal
-	MaxPrice     decimal.Decimal
+	BookAvailability models.BookAvailability
+	Formats          []models.BookFormat
+	Categories       []int64
+	MinPrice         decimal.Decimal
+	MaxPrice         decimal.Decimal
 }
 
 func ParseBookPaginationQuery(r *http.Request) (*MetaData, *BookFilters, error) {
@@ -34,21 +34,21 @@ func ParseBookPaginationQuery(r *http.Request) (*MetaData, *BookFilters, error) 
 	}
 
 	filters := &BookFilters{
-		Availability: string(models.Available),
-		Format:       []models.BookFormat{models.Paperback},
+		BookAvailability: models.Available,
+		Formats:          []models.BookFormat{models.Paperback},
 	}
 
 	if formats, err := parseAndValidateFormats(qs.Get(BookFormatParam)); err != nil {
 		return nil, nil, err
 	} else if len(formats) > 0 {
-		filters.Format = formats
+		filters.Formats = formats
 	}
 
 	categories, err := parseCategories(qs.Get(BookCategoryParam))
 	if err != nil {
 		return nil, nil, err
 	}
-	filters.Category = categories
+	filters.Categories = categories
 
 	minPrice, maxPrice, err := parseMinMaxPrice(qs.Get(BookMinPriceParam), qs.Get(BookMaxPriceParam))
 	if err != nil {
@@ -65,20 +65,18 @@ func parseAndValidateFormats(formatParam string) ([]models.BookFormat, error) {
 		return nil, nil
 	}
 
-	var formatsMap []models.BookFormat
+	var formatFilters []models.BookFormat
 	formats := strings.Split(formatParam, ",")
 
 	for _, f := range formats {
 		bookFormat := models.BookFormat(f)
-		switch bookFormat {
-		case models.Audiobook, models.EBook, models.Hardcover, models.Paperback:
-			formatsMap = append(formatsMap, bookFormat)
-		default:
+		if isValid := bookFormat.Validate(); !isValid {
 			return nil, fmt.Errorf("invalid book format parameter: %v", f)
 		}
+		formatFilters = append(formatFilters, bookFormat)
 	}
 
-	return formatsMap, nil
+	return formatFilters, nil
 }
 
 func parseCategories(categoryParam string) ([]int64, error) {
@@ -86,8 +84,8 @@ func parseCategories(categoryParam string) ([]int64, error) {
 		return nil, nil
 	}
 
+	var categoryIDs []int64
 	categories := strings.Split(categoryParam, ",")
-	categoryIDs := []int64{}
 
 	for _, c := range categories {
 		categoryID, err := strconv.ParseInt(c, 10, 64)
@@ -100,10 +98,7 @@ func parseCategories(categoryParam string) ([]int64, error) {
 	return categoryIDs, nil
 }
 
-func parseMinMaxPrice(minPriceParam, maxPriceParam string) (decimal.Decimal, decimal.Decimal, error) {
-	var minPrice, maxPrice decimal.Decimal
-	var err error
-
+func parseMinMaxPrice(minPriceParam, maxPriceParam string) (minPrice decimal.Decimal, maxPrice decimal.Decimal, err error) {
 	if minPriceParam != "" {
 		minPrice, err = decimal.ParseExact(minPriceParam, 5)
 		if err != nil {
@@ -125,52 +120,50 @@ func parseMinMaxPrice(minPriceParam, maxPriceParam string) (decimal.Decimal, dec
 }
 
 func bookItemSortKeyValidator(key string) bool {
-	if key != "avg_review" &&
-		key != "created_at" &&
-		key != "price" {
-		return false
+	switch key {
+	case "avg_review", "created_at", "price":
+		return true
 	}
-
-	return true
+	return false
 }
 
-func (bf *BookFilters) BuildFilterQuery() string {
+func (bf BookFilters) BuildFilterQuery() string {
 	var sb strings.Builder
 	sb.WriteString("WHERE ")
-	sb.WriteString(fmt.Sprintf("\n\tavailable = '%s' AND", bf.Availability))
+	sb.WriteString(fmt.Sprintf("\n\tavailable = '%s' AND ", bf.BookAvailability))
 
-	if len(bf.Format) > 0 {
+	if len(bf.Formats) > 0 {
 		sb.WriteString("\n\tformat IN (")
-		for i, format := range bf.Format {
+		for i, format := range bf.Formats {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
 			sb.WriteString(fmt.Sprintf("'%s'", format))
 		}
 		sb.WriteString(")")
-		sb.WriteString("\nAND")
+		sb.WriteString("\n AND ")
 	}
 
-	if len(bf.Category) > 0 {
+	if len(bf.Categories) > 0 {
 		sb.WriteString("\n\tc.id IN (")
-		for i, categoryID := range bf.Category {
+		for i, categoryID := range bf.Categories {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(fmt.Sprintf("'%v'", categoryID))
+			sb.WriteString(fmt.Sprintf("%v", categoryID))
 		}
 		sb.WriteString(")")
-		sb.WriteString("\nAND")
+		sb.WriteString("\n AND ")
 	}
 
 	if bf.MinPrice.Cmp(decimal.Zero) > 0 {
 		sb.WriteString(fmt.Sprintf("\n\tprice >= %v", bf.MinPrice))
-		sb.WriteString("\nAND")
+		sb.WriteString("\n AND ")
 	}
 
 	if bf.MaxPrice.Cmp(decimal.Zero) > 0 {
 		sb.WriteString(fmt.Sprintf("\n\tprice <= %v", bf.MaxPrice))
 	}
 
-	return strings.TrimSuffix(sb.String(), "AND")
+	return strings.TrimSuffix(strings.TrimSpace(sb.String()), "AND")
 }

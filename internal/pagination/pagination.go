@@ -128,7 +128,7 @@ func CalculateMaxPages(maxItems, pageSize int) int {
 	return (maxItems + pageSize - 1) / pageSize
 }
 
-func (p *MetaData) BuildSortingQuery() string {
+func (p MetaData) BuildSortingQuery() string {
 	if len(p.SortBy) == 0 {
 		return ""
 	}
@@ -136,8 +136,8 @@ func (p *MetaData) BuildSortingQuery() string {
 	var sb strings.Builder
 	sb.WriteString("ORDER BY ")
 
-	for k, v := range p.SortBy {
-		sb.WriteString(fmt.Sprintf("%s %s,", k, v))
+	for sortKey, sortOrder := range p.SortBy {
+		sb.WriteString(fmt.Sprintf("%s %s,", sortKey, sortOrder))
 	}
 
 	return strings.TrimSuffix(sb.String(), ",")

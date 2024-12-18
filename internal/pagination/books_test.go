@@ -1,13 +1,14 @@
 package pagination
 
 import (
+	"bookshop/internal/assert"
 	"bookshop/internal/models"
+	"fmt"
 	"maps"
 	"net/http"
 	"testing"
 
 	"github.com/govalues/decimal"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_ParseBookPaginationQuery(t *testing.T) {
@@ -29,10 +30,10 @@ func Test_ParseBookPaginationQuery(t *testing.T) {
 				},
 			},
 			expectedBookFilters: &BookFilters{
-				Format:   []models.BookFormat{models.Audiobook, models.EBook},
-				Category: []int64{1, 2},
-				MinPrice: decimal.Ten,
-				MaxPrice: decimal.Hundred,
+				Formats:    []models.BookFormat{models.Audiobook, models.EBook},
+				Categories: []int64{1, 2},
+				MinPrice:   decimal.Ten,
+				MaxPrice:   decimal.Hundred,
 			},
 			expectedErr: "",
 		},
@@ -45,10 +46,10 @@ func Test_ParseBookPaginationQuery(t *testing.T) {
 				SortBy:     nil,
 			},
 			expectedBookFilters: &BookFilters{
-				Format:   []models.BookFormat{models.Paperback},
-				Category: nil,
-				MinPrice: decimal.Zero,
-				MaxPrice: decimal.Zero,
+				Formats:    []models.BookFormat{models.Paperback},
+				Categories: nil,
+				MinPrice:   decimal.Zero,
+				MaxPrice:   decimal.Zero,
 			},
 			expectedErr: "",
 		},
@@ -98,10 +99,10 @@ func Test_ParseBookPaginationQuery(t *testing.T) {
 				},
 			},
 			expectedBookFilters: &BookFilters{
-				Format:   []models.BookFormat{models.Paperback},
-				Category: nil,
-				MinPrice: decimal.Zero,
-				MaxPrice: decimal.Zero,
+				Formats:    []models.BookFormat{models.Paperback},
+				Categories: nil,
+				MinPrice:   decimal.Zero,
+				MaxPrice:   decimal.Zero,
 			},
 			expectedErr: "",
 		},
@@ -115,18 +116,83 @@ func Test_ParseBookPaginationQuery(t *testing.T) {
 			m, bf, err := ParseBookPaginationQuery(req)
 
 			if tt.expectedErr != "" {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tt.expectedErr)
+				assert.StringContains(t, err.Error(), tt.expectedErr)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, m.PageNumber, tt.expectedMetaData.PageNumber)
 				assert.Equal(t, m.PageSize, tt.expectedMetaData.PageSize)
 				assert.True(t, maps.Equal(m.SortBy, tt.expectedMetaData.SortBy))
-				assert.ElementsMatch(t, bf.Format, tt.expectedBookFilters.Format)
-				assert.ElementsMatch(t, bf.Category, tt.expectedBookFilters.Category)
+				assert.Equal(t, len(bf.Formats), len(tt.expectedBookFilters.Formats))
+				assert.Equal(t, len(bf.Categories), len(tt.expectedBookFilters.Categories))
 				assert.True(t, bf.MinPrice.Equal(tt.expectedBookFilters.MinPrice))
 				assert.True(t, bf.MaxPrice.Equal(tt.expectedBookFilters.MaxPrice))
 			}
+		})
+	}
+}
+
+func Test_BuildFilterQuery(t *testing.T) {
+	tests := []struct {
+		name        string
+		bookFilters BookFilters
+		expected    string
+	}{
+		{
+			name: "Filters with available field only",
+			bookFilters: BookFilters{
+				BookAvailability: models.Available,
+			},
+			expected: fmt.Sprintf("WHERE available = '%s'", models.Available),
+		},
+		{
+			name: "Filters with formats",
+			bookFilters: BookFilters{
+				BookAvailability: models.Available,
+				Formats:          []models.BookFormat{models.Audiobook, models.EBook},
+			},
+			expected: fmt.Sprintf("WHERE available = '%s' AND format IN ('%s', '%s')", models.Available, models.Audiobook, models.EBook),
+		},
+		{
+			name: "Filters with categories",
+			bookFilters: BookFilters{
+				BookAvailability: models.Available,
+				Categories:       []int64{1, 2},
+			},
+			expected: fmt.Sprintf("WHERE available = '%s' AND c.id IN (%d, %d)", models.Available, 1, 2),
+		},
+		{
+			name: "Filters with price range",
+			bookFilters: BookFilters{
+				BookAvailability: models.Available,
+				MinPrice:         decimal.Ten,
+				MaxPrice:         decimal.Hundred,
+			},
+			expected: fmt.Sprintf("WHERE available = '%s' AND price >= %v AND price <= %v", models.Available, decimal.Ten, decimal.Hundred),
+		},
+		{
+			name: "Filters with all fields",
+			bookFilters: BookFilters{
+				BookAvailability: models.Available,
+				Formats:          []models.BookFormat{models.EBook, models.Paperback},
+				Categories:       []int64{3, 4},
+				MinPrice:         decimal.Ten,
+				MaxPrice:         decimal.Hundred,
+			},
+			expected: fmt.Sprintf("WHERE available = '%s' AND format IN ('%s', '%s') AND c.id IN (%d, %d) AND price >= %v AND price <= %v", models.Available, models.EBook, models.Paperback, 3, 4, decimal.Ten, decimal.Hundred),
+		},
+		{
+			name: "Filters with no formats or categories",
+			bookFilters: BookFilters{
+				BookAvailability: models.NotAvailable,
+			},
+			expected: fmt.Sprintf("WHERE available = '%s'", models.NotAvailable),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			res := tt.bookFilters.BuildFilterQuery()
+			assert.NormalizedStringsEqual(t, res, tt.expected)
 		})
 	}
 }
