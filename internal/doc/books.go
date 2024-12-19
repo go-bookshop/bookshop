@@ -1,14 +1,21 @@
 package doc
 
-import "bookshop/internal/data"
+import (
+	"bookshop/internal/models"
+	"bookshop/internal/pagination"
+)
 
 const BooksTag = "Books"
 
 func getBooksOperation() *Operation {
 	op := NewOperation("Get Books", "Returns paginated books result", []string{BooksTag})
-	op.AddQueryParameter("page", "integer", "Requested page number", false)
-	op.AddQueryParameter("size", "integer", "Number of items per page", false)
-	op.AddQueryParameter("sort", "string", "Sorting filters", false)
+	op.AddQueryParameter(pagination.PageNumberParam, "integer", "Requested page number", false)
+	op.AddQueryParameter(pagination.PageSizeParam, "integer", "Number of items per page", false)
+	op.AddQueryParameter(pagination.SortParam, "string", "Sorting filters", false)
+	op.AddQueryParameter(pagination.BookFormatParam, "string", "Book formats filter", false)
+	op.AddQueryParameter(pagination.BookCategoryParam, "string", "Book categories filter", false)
+	op.AddQueryParameter(pagination.BookMinPriceParam, "number", "Book's minimal price", false)
+	op.AddQueryParameter(pagination.BookMinPriceParam, "number", "Book's maximal price", false)
 
 	successSchema := NewSchema()
 
@@ -37,6 +44,7 @@ func getBookItemComponentSchema() *Schema {
 	component.AddProperty("avg_review", "number", "Average reviews of the book", false)
 	component.AddSimpleArrayProperty("image_urls", "string", "Book images url", false)
 	component.AddProperty("authors", "string", "Comma-separated list of authors of the book", false)
+	component.AddProperty("categories", "string", "Comma-separated list of book's categories", false)
 
 	propertyRefSchema := NewRefSchema("BookProperty")
 	component.AddRefSchemaProperty("property", propertyRefSchema, false)
@@ -55,10 +63,10 @@ func getBookPropertySchema() *Schema {
 		"string",
 		"Format of the related book",
 		false,
-		string(data.Paperback),
-		string(data.Hardcover),
-		string(data.Audiobook),
-		string(data.EBook),
+		string(models.Paperback),
+		string(models.Hardcover),
+		string(models.Audiobook),
+		string(models.EBook),
 	)
 	component.AddProperty("language", "string", "Language of the related book", false)
 	component.AddProperty("price", "number", "Price of the related book in current format", false)
@@ -73,9 +81,9 @@ func getBookPropertySchema() *Schema {
 		"string",
 		"Availability of the related book in current format",
 		false,
-		string(data.Available),
-		string(data.NotAvailable),
-		string(data.Upcoming),
+		string(models.Available),
+		string(models.NotAvailable),
+		string(models.Upcoming),
 	)
 	component.AddProperty("published_at", "string", "Publish date of the related book", false)
 

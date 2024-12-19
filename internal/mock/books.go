@@ -2,8 +2,11 @@ package mock
 
 import (
 	"bookshop/internal/data"
-	"bookshop/internal/httputil"
+	"bookshop/internal/models"
+	"bookshop/internal/pagination"
 	"time"
+
+	"github.com/govalues/decimal"
 )
 
 func NewBookRepository() data.BookRepositoryInterface {
@@ -13,60 +16,57 @@ func NewBookRepository() data.BookRepositoryInterface {
 type BookRepository struct {
 }
 
-func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem, int, error) {
-	books := []data.BookItem{
+func (r *BookRepository) GetBooks(pd *pagination.MetaData, bf *pagination.BookFilters) ([]models.BookItem, int, error) {
+	books := []models.BookItem{
 		{
-			Book: data.Book{
+			ID:         1,
+			Title:      "test",
+			Synopsis:   "something very interesting about this book",
+			AvgReview:  3.3,
+			ImageUrls:  []string{"https://image1.jpg"},
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+			Authors:    "A",
+			Categories: "C",
+			Property: models.BookProperty{
 				ID:        1,
-				Title:     "test",
-				Synopsis:  "something very interesting about this book",
-				AvgReview: 3.3,
-				ImageUrls: []string{"https://image1.jpg"},
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			Authors: "A",
-			Property: data.BookProperty{
-				ID:        1,
-				Format:    data.Paperback,
-				Available: data.Available,
-				Price:     100,
+				Format:    models.Paperback,
+				Available: models.Available,
+				Price:     decimal.Hundred,
 			},
 		},
 		{
-			Book: data.Book{
+			ID:         2,
+			Title:      "test2",
+			Synopsis:   "something very interesting about this book",
+			AvgReview:  3.4,
+			ImageUrls:  []string{"https://image2.jpg"},
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+			Authors:    "B",
+			Categories: "C",
+			Property: models.BookProperty{
 				ID:        2,
-				Title:     "test2",
-				Synopsis:  "something very interesting about this book",
-				AvgReview: 3.4,
-				ImageUrls: []string{"https://image2.jpg"},
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			Authors: "B",
-			Property: data.BookProperty{
-				ID:        2,
-				Format:    data.Paperback,
-				Available: data.Available,
-				Price:     100,
+				Format:    models.Paperback,
+				Available: models.Available,
+				Price:     decimal.Hundred,
 			},
 		},
 		{
-			Book: data.Book{
+			ID:         3,
+			Title:      "test3",
+			Synopsis:   "something very interesting about this book",
+			AvgReview:  3.6,
+			ImageUrls:  []string{"https://image3.jpg"},
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
+			Authors:    "A, B",
+			Categories: "C",
+			Property: models.BookProperty{
 				ID:        3,
-				Title:     "test3",
-				Synopsis:  "something very interesting about this book",
-				AvgReview: 3.6,
-				ImageUrls: []string{"https://image3.jpg"},
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			Authors: "A, B",
-			Property: data.BookProperty{
-				ID:        3,
-				Format:    data.Paperback,
-				Available: data.Available,
-				Price:     100,
+				Format:    models.Paperback,
+				Available: models.Available,
+				Price:     decimal.Hundred,
 			},
 		},
 	}
@@ -74,7 +74,7 @@ func (r *BookRepository) GetBooks(pd *httputil.PaginationData) ([]data.BookItem,
 
 	start := pd.PageNumber * pd.PageSize
 	if start >= booksLen {
-		return []data.BookItem{}, 1, nil
+		return []models.BookItem{}, 1, nil
 	}
 
 	end := start + pd.PageSize

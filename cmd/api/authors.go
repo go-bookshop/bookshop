@@ -3,6 +3,7 @@ package main
 import (
 	"bookshop/internal/data"
 	"bookshop/internal/httputil"
+	"bookshop/internal/models"
 	"bookshop/internal/validator"
 	"fmt"
 	"net/http"
@@ -19,7 +20,7 @@ func (app *application) createAuthorHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	author := &data.Author{
+	author := &models.Author{
 		Name: input.Name,
 		Bio:  input.Bio,
 	}

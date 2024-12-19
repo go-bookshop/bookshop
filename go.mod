@@ -6,6 +6,7 @@ require github.com/joho/godotenv v1.5.1
 
 require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
+	github.com/govalues/decimal v0.1.33
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/pb33f/libopenapi v0.18.6
 	github.com/rs/cors v1.11.1

@@ -1,28 +1,29 @@
-package httputil
+package pagination
 
 import (
 	"bookshop/internal/assert"
 	"fmt"
 	"maps"
 	"net/http"
+	"strings"
 	"testing"
 )
 
-func Test_ParsePaginationQuery(t *testing.T) {
-	pageSizeErr := fmt.Sprintf("invalid page size. value should not be less than 1 and greater than %d", maxPageSize)
-	pageNumberErr := "invalid page number. value should not be less than 0"
+func Test_ParsePaginationMetaData(t *testing.T) {
+	pageSizeErr := fmt.Sprintf("failed to parse page size: page size must be between 1 and %d", maxPageSize)
+	pageNumberErr := "failed to parse page number: page number must be positive"
 	parseErr := "failed to parse"
 
 	tests := []struct {
 		name         string
 		query        string
-		expectedData *PaginationData
+		expectedData *MetaData
 		expectedErr  string
 	}{
 		{
 			name:  "Valid query parameters",
 			query: "page=2&size=20&sort=created_at.desc",
-			expectedData: &PaginationData{
+			expectedData: &MetaData{
 				PageNumber: 2,
 				PageSize:   20,
 				SortBy: map[string]string{
@@ -34,7 +35,7 @@ func Test_ParsePaginationQuery(t *testing.T) {
 		{
 			name:  "Missing query parameters (default values)",
 			query: "",
-			expectedData: &PaginationData{
+			expectedData: &MetaData{
 				PageNumber: 0,
 				PageSize:   10,
 			},
@@ -90,7 +91,7 @@ func Test_ParsePaginationQuery(t *testing.T) {
 		},
 		{
 			name:         "Valid sort field with trailing invalid parameter",
-			query:        "sort=created_at.desc&invalid_field.asc",
+			query:        "sort=created_at.desc,invalid_field.asc",
 			expectedData: nil,
 			expectedErr:  "invalid sort field",
 		},
@@ -101,14 +102,15 @@ func Test_ParsePaginationQuery(t *testing.T) {
 			req, err := http.NewRequest("GET", "/?"+tt.query, nil)
 			assert.NoError(t, err)
 
-			pagination, err := ParsePaginationQuery(req, func(s string) bool { return true })
+			p, err := ParsePaginationMetaData(req, func(s string) bool { return !strings.Contains(s, "invalid") })
 
 			if tt.expectedErr != "" {
+				assert.StringContains(t, err.Error(), tt.expectedErr)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, pagination.PageNumber, tt.expectedData.PageNumber)
-				assert.Equal(t, pagination.PageSize, tt.expectedData.PageSize)
-				assert.True(t, maps.Equal(pagination.SortBy, tt.expectedData.SortBy))
+				assert.Equal(t, p.PageNumber, tt.expectedData.PageNumber)
+				assert.Equal(t, p.PageSize, tt.expectedData.PageSize)
+				assert.True(t, maps.Equal(p.SortBy, tt.expectedData.SortBy))
 			}
 		})
 	}
@@ -153,12 +155,12 @@ func Test_CalculateMaxPages(t *testing.T) {
 func Test_BuildSortingQuery(t *testing.T) {
 	tests := []struct {
 		name           string
-		paginationData PaginationData
+		paginationData MetaData
 		expected       string
 	}{
 		{
 			name: "Single sort by field",
-			paginationData: PaginationData{
+			paginationData: MetaData{
 				SortBy: map[string]string{
 					"created_at": "desc",
 				},
@@ -167,14 +169,21 @@ func Test_BuildSortingQuery(t *testing.T) {
 		},
 		{
 			name: "Nil sort by map",
-			paginationData: PaginationData{
+			paginationData: MetaData{
 				SortBy: nil,
 			},
 			expected: "",
 		},
 		{
+			name: "Empty sort by map",
+			paginationData: MetaData{
+				SortBy: map[string]string{},
+			},
+			expected: "",
+		},
+		{
 			name: "Multiple sort by fields",
-			paginationData: PaginationData{
+			paginationData: MetaData{
 				SortBy: map[string]string{
 					"created_at": "desc",
 					"updated_at": "asc",
@@ -183,15 +192,8 @@ func Test_BuildSortingQuery(t *testing.T) {
 			expected: "ORDER BY created_at desc,updated_at asc",
 		},
 		{
-			name: "No sort fields",
-			paginationData: PaginationData{
-				SortBy: map[string]string{},
-			},
-			expected: "ORDER BY ",
-		},
-		{
 			name: "Sort fields with extra comma",
-			paginationData: PaginationData{
+			paginationData: MetaData{
 				SortBy: map[string]string{
 					"created_at": "desc",
 					"updated_at": "asc",

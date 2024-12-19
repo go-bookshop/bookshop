@@ -14,6 +14,28 @@ func Equal[T comparable](t *testing.T, got, want T) {
 	}
 }
 
+func NormalizedStringsEqual(t *testing.T, got, want string) {
+	t.Helper()
+
+	normalize := func(s string) string {
+		s = strings.TrimSpace(s)
+		var builder strings.Builder
+		for _, r := range s {
+			if r != '\n' && r != '\t' && r != '\r' {
+				builder.WriteRune(r)
+			}
+		}
+		return builder.String()
+	}
+
+	normalizedGot := normalize(got)
+	normalizedWant := normalize(want)
+
+	if normalizedGot != normalizedWant {
+		t.Errorf("normalized got %s should be equal to normalized %s", normalizedGot, normalizedWant)
+	}
+}
+
 func NotEqual[T comparable](t *testing.T, got, want T) {
 	t.Helper()
 	if got == want {
