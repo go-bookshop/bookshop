@@ -1,13 +1,15 @@
-package data
+package repository
 
 import (
 	"bookshop/internal/assert"
+	"bookshop/internal/models"
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserRepoTestSuite struct {
@@ -212,25 +214,25 @@ func (s *UserRepoTestSuite) TestUserRepository_GetByToken(t *testing.T) {
 		{
 			name:       "Valid Token",
 			token:      "35FM5TZVYCDCPQBCOWHVOVGE6Q",
-			scope:      ScopeActivation,
+			scope:      models.ScopeActivation,
 			wantUserID: 4,
 		},
 		{
 			name:      "Token with wrong scope",
 			token:     "35FM5TZVYCDCPQBCOWHVOVGE6Q",
-			scope:     ScopeAuthentication,
+			scope:     models.ScopeAuthentication,
 			wantError: ErrRecordNotFound,
 		},
 		{
 			name:      "Non-existing Token",
 			token:     "99FM5TZVYCDCPQBCDWHVOVGE6Q",
-			scope:     ScopeActivation,
+			scope:     models.ScopeActivation,
 			wantError: ErrRecordNotFound,
 		},
 		{
 			name:      "Expired Token",
 			token:     "IS5BCEAMZJ7X5YD54Y6TW4VA2U",
-			scope:     ScopeAuthentication,
+			scope:     models.ScopeAuthentication,
 			wantError: ErrRecordNotFound,
 		},
 	}

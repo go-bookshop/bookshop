@@ -1,15 +1,15 @@
 package mock
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/models"
 	"bookshop/internal/pagination"
+	"bookshop/internal/repository"
 	"time"
 
 	"github.com/govalues/decimal"
 )
 
-func NewBookRepository() data.BookRepositoryInterface {
+func NewBookRepository() repository.BookRepositoryInterface {
 	return &BookRepository{}
 }
 

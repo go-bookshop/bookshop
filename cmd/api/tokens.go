@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/httputil"
 	"bookshop/internal/mailer"
+	"bookshop/internal/models"
+	"bookshop/internal/repository"
 	"bookshop/internal/validator"
 	"errors"
 	"fmt"
@@ -23,7 +24,7 @@ func (app *application) resendActivationTokenHandler(w http.ResponseWriter, r *h
 	}
 
 	v := validator.New()
-	if data.ValidateEmail(v, input.Email); !v.Valid() {
+	if repository.ValidateEmail(v, input.Email); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
@@ -31,7 +32,7 @@ func (app *application) resendActivationTokenHandler(w http.ResponseWriter, r *h
 	user, err := app.repositories.UserRepository.GetByEmail(input.Email)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
+		case errors.Is(err, repository.ErrRecordNotFound):
 			v.AddError("email", "no matching email address found")
 			app.validationErrorResponse(w, r, v.Errors)
 		default:
@@ -46,7 +47,7 @@ func (app *application) resendActivationTokenHandler(w http.ResponseWriter, r *h
 		return
 	}
 
-	token, err := app.repositories.TokenRepository.New(user.ID, 24*time.Hour, data.ScopeActivation)
+	token, err := app.repositories.TokenRepository.New(user.ID, 24*time.Hour, models.ScopeActivation)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

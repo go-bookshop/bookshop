@@ -2,8 +2,8 @@ package main
 
 import (
 	"bookshop/internal/assert"
-	"bookshop/internal/data"
 	"bookshop/internal/mock"
+	"bookshop/internal/repository"
 	"bytes"
 	"io"
 	"log/slog"
@@ -26,8 +26,8 @@ func newTestApplication() *application {
 	}
 }
 
-func newMockRepositories() data.Repositories {
-	return data.Repositories{
+func newMockRepositories() repository.Repositories {
+	return repository.Repositories{
 		AuthorRepository:   mock.NewAuthorRepository(),
 		CategoryRepository: mock.NewCategoryRepository(),
 		UserRepository:     mock.NewUserRepository(),

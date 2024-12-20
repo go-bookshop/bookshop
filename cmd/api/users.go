@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/httputil"
 	"bookshop/internal/mailer"
+	"bookshop/internal/models"
+	"bookshop/internal/repository"
 	"bookshop/internal/validator"
 	"errors"
 	"fmt"
@@ -25,14 +26,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user := &data.User{
+	user := &repository.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Email:     input.Email,
 	}
 
 	v := validator.New()
-	if data.ValidatePassword(v, input.Password); !v.Valid() {
+	if repository.ValidatePassword(v, input.Password); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
@@ -43,7 +44,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if data.ValidateUser(v, user); !v.Valid() {
+	if repository.ValidateUser(v, user); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
@@ -51,7 +52,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err = app.repositories.UserRepository.Insert(user)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrDuplicateItem):
+		case errors.Is(err, repository.ErrDuplicateItem):
 			v.AddError("email", "user already exists")
 			app.validationErrorResponse(w, r, v.Errors)
 		default:
@@ -60,7 +61,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	token, err := app.repositories.TokenRepository.New(user.ID, 24*time.Hour, data.ScopeActivation)
+	token, err := app.repositories.TokenRepository.New(user.ID, 24*time.Hour, models.ScopeActivation)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -108,15 +109,15 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	v := validator.New()
-	if data.ValidateTokenPlaintext(v, input.PlaintextToken); !v.Valid() {
+	if models.ValidateTokenPlaintext(v, input.PlaintextToken); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
 
-	user, err := app.repositories.UserRepository.GetByToken(data.ScopeActivation, input.PlaintextToken)
+	user, err := app.repositories.UserRepository.GetByToken(models.ScopeActivation, input.PlaintextToken)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
+		case errors.Is(err, repository.ErrRecordNotFound):
 			v.AddError("token", "invalid or expired activation token")
 			app.validationErrorResponse(w, r, v.Errors)
 		default:
@@ -130,7 +131,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	err = app.repositories.UserRepository.Update(user)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrRecordEditConflict):
+		case errors.Is(err, repository.ErrRecordEditConflict):
 			app.editConflictResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
@@ -138,7 +139,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = app.repositories.TokenRepository.DeleteAllByUserID(data.ScopeActivation, user.ID)
+	err = app.repositories.TokenRepository.DeleteAllByUserID(models.ScopeActivation, user.ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

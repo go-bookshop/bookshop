@@ -1,27 +1,28 @@
 package mock
 
 import (
-	"bookshop/internal/data"
+	"bookshop/internal/models"
+	"bookshop/internal/repository"
 	"errors"
 	"time"
 )
 
-func NewTokenRepository() data.TokenRepositoryInterface {
+func NewTokenRepository() repository.TokenRepositoryInterface {
 	return &TokenRepository{}
 }
 
 type TokenRepository struct {
 }
 
-func (t TokenRepository) New(userID int64, ttl time.Duration, scope string) (*data.Token, error) {
+func (t TokenRepository) New(userID int64, ttl time.Duration, scope string) (*models.Token, error) {
 	switch userID {
 	case UnexpectedUserId:
 		return nil, errors.New("unexpected")
 	}
-	return &data.Token{UserID: userID}, nil
+	return &models.Token{UserID: userID}, nil
 }
 
-func (t TokenRepository) Insert(token *data.Token) error {
+func (t TokenRepository) Insert(token *models.Token) error {
 	return nil
 }
 

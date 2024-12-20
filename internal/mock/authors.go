@@ -1,12 +1,12 @@
 package mock
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/models"
+	"bookshop/internal/repository"
 	"errors"
 )
 
-func NewAuthorRepository() data.AuthorRepositoryInterface {
+func NewAuthorRepository() repository.AuthorRepositoryInterface {
 	return &AuthorRepository{}
 }
 

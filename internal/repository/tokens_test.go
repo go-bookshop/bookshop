@@ -1,14 +1,16 @@
-package data
+package repository
 
 import (
 	"bookshop/internal/assert"
+	"bookshop/internal/models"
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TokenRepoTestSuite struct {
@@ -49,18 +51,18 @@ func (s *TokenRepoTestSuite) TearDown(t *testing.T) {
 
 func (s *TokenRepoTestSuite) TestTokenRepository_New(t *testing.T) {
 	t.Run("New Token", func(t *testing.T) {
-		got, err := s.repository.New(1, 24*time.Hour, ScopeActivation)
+		got, err := s.repository.New(1, 24*time.Hour, models.ScopeActivation)
 		assert.NoError(t, err)
 		assert.NotNil(t, got)
 		assert.NonZero(t, got.Plaintext, "Plaintext")
 		assert.NotNil(t, got.Hash)
 		assert.NotNil(t, got)
 		assert.Equal(t, got.UserID, 1)
-		assert.Equal(t, got.Scope, ScopeActivation)
+		assert.Equal(t, got.Scope, models.ScopeActivation)
 	})
 
 	t.Run("Token with invalid User", func(t *testing.T) {
-		_, err := s.repository.New(999, 24*time.Hour, ScopeActivation)
+		_, err := s.repository.New(999, 24*time.Hour, models.ScopeActivation)
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			assert.Equal(t, pgErr.Code, "23503")
@@ -69,12 +71,12 @@ func (s *TokenRepoTestSuite) TestTokenRepository_New(t *testing.T) {
 }
 
 func (s *TokenRepoTestSuite) TestTokenRepository_Insert(t *testing.T) {
-	token := &Token{
+	token := &models.Token{
 		Plaintext: "A6IGKHLC25PMUOBTBJTEOGLX5U",
 		Hash:      []byte{},
 		UserID:    2,
 		Expiry:    time.Now(),
-		Scope:     ScopeAuthentication,
+		Scope:     models.ScopeAuthentication,
 	}
 	t.Run("New Token", func(t *testing.T) {
 		err := s.repository.Insert(token)
@@ -84,13 +86,13 @@ func (s *TokenRepoTestSuite) TestTokenRepository_Insert(t *testing.T) {
 		assert.NotNil(t, token.Hash)
 		assert.NotNil(t, token)
 		assert.Equal(t, token.UserID, 2)
-		assert.Equal(t, token.Scope, ScopeAuthentication)
+		assert.Equal(t, token.Scope, models.ScopeAuthentication)
 	})
 }
 
 func (s *TokenRepoTestSuite) TestTokenRepository_DeleteAllByUserID(t *testing.T) {
 	countBefore := countTokensByUserId(t, s.pool, 4)
-	err := s.repository.DeleteAllByUserID(ScopeActivation, 4)
+	err := s.repository.DeleteAllByUserID(models.ScopeActivation, 4)
 	assert.NoError(t, err)
 	countAfter := countTokensByUserId(t, s.pool, 4)
 	assert.NotEqual(t, countBefore, countAfter)

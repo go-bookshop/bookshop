@@ -1,22 +1,22 @@
 package mock
 
 import (
-	"bookshop/internal/data"
+	"bookshop/internal/repository"
 	"errors"
 	"time"
 )
 
-func NewUserRepository() data.UserRepositoryInterface {
+func NewUserRepository() repository.UserRepositoryInterface {
 	return &UserRepository{}
 }
 
 type UserRepository struct {
 }
 
-func (r *UserRepository) Insert(u *data.User) error {
+func (r *UserRepository) Insert(u *repository.User) error {
 	switch u.Email {
 	case DuplicateEmail:
-		return data.ErrDuplicateItem
+		return repository.ErrDuplicateItem
 	case UnexpectedEmail:
 		return errors.New("unexpected")
 	case CorruptedEmail:
@@ -28,23 +28,23 @@ func (r *UserRepository) Insert(u *data.User) error {
 	return nil
 }
 
-func (r *UserRepository) GetByEmail(email string) (*data.User, error) {
+func (r *UserRepository) GetByEmail(email string) (*repository.User, error) {
 	switch email {
 	case PanicEmail:
-		return &data.User{Email: PanicEmail}, nil
+		return &repository.User{Email: PanicEmail}, nil
 	case FailedToSendEmail:
-		return &data.User{Email: FailedToSendEmail}, nil
+		return &repository.User{Email: FailedToSendEmail}, nil
 	case NotFoundEmail:
-		return nil, data.ErrRecordNotFound
+		return nil, repository.ErrRecordNotFound
 	case UnexpectedEmail:
 		return nil, errors.New("empty")
 	case ActivatedEmail:
-		return &data.User{Activated: true}, nil
+		return &repository.User{Activated: true}, nil
 	case SimulateFailTokenCreationEmail:
-		return &data.User{ID: UnexpectedUserId}, nil
+		return &repository.User{ID: UnexpectedUserId}, nil
 
 	}
-	return &data.User{
+	return &repository.User{
 		ID:        999,
 		FirstName: "John",
 		LastName:  "Doe",
@@ -55,28 +55,28 @@ func (r *UserRepository) GetByEmail(email string) (*data.User, error) {
 	}, nil
 }
 
-func (r *UserRepository) Update(u *data.User) error {
+func (r *UserRepository) Update(u *repository.User) error {
 	switch u.Email {
 	case UnexpectedEmail:
 		return errors.New("empty")
 	case ConflictEmail:
-		return data.ErrRecordEditConflict
+		return repository.ErrRecordEditConflict
 	}
 	return nil
 }
 
-func (r *UserRepository) GetByToken(scope, token string) (*data.User, error) {
+func (r *UserRepository) GetByToken(scope, token string) (*repository.User, error) {
 	switch token {
 	case ExpiredToken:
-		return nil, data.ErrRecordNotFound
+		return nil, repository.ErrRecordNotFound
 	case SimulateConflictWriteToken:
-		return &data.User{Email: ConflictEmail}, nil
+		return &repository.User{Email: ConflictEmail}, nil
 	case SimulateUnexpectedWriteToken:
-		return &data.User{Email: UnexpectedEmail}, nil
+		return &repository.User{Email: UnexpectedEmail}, nil
 	case SimulateFailToDeleteAllByUserIdToken:
-		return &data.User{ID: CorruptedUserId}, nil
+		return &repository.User{ID: CorruptedUserId}, nil
 	}
-	return &data.User{
+	return &repository.User{
 		ID:        999,
 		FirstName: "John",
 		LastName:  "Doe",

@@ -1,4 +1,4 @@
-package data
+package repository
 
 import (
 	"bookshop/internal/validator"
@@ -8,12 +8,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
