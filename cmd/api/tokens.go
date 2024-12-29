@@ -24,7 +24,7 @@ func (app *application) resendActivationTokenHandler(w http.ResponseWriter, r *h
 	}
 
 	v := validator.New()
-	if repository.ValidateEmail(v, input.Email); !v.Valid() {
+	if models.ValidateEmail(v, input.Email); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}

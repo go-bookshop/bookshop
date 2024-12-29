@@ -26,14 +26,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user := &repository.User{
+	user := &models.User{
 		FirstName: input.FirstName,
 		LastName:  input.LastName,
 		Email:     input.Email,
 	}
 
 	v := validator.New()
-	if repository.ValidatePassword(v, input.Password); !v.Valid() {
+	if models.ValidatePassword(v, input.Password); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
@@ -44,7 +44,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if repository.ValidateUser(v, user); !v.Valid() {
+	if models.ValidateUser(v, user); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}

@@ -49,13 +49,13 @@ func (s *UserRepoTestSuite) TearDown(t *testing.T) {
 func (s *UserRepoTestSuite) TestUserRepository_Insert(t *testing.T) {
 	table := []struct {
 		name      string
-		user      User
+		user      models.User
 		password  string
 		wantError error
 	}{
 		{
 			name: "New User",
-			user: User{
+			user: models.User{
 				FirstName: "Ivan",
 				LastName:  "Petrenko",
 				Email:     "Petr@mail.com",
@@ -66,7 +66,7 @@ func (s *UserRepoTestSuite) TestUserRepository_Insert(t *testing.T) {
 		},
 		{
 			name: "Duplicate User",
-			user: User{
+			user: models.User{
 				FirstName: "Ivan",
 				LastName:  "Petrenko",
 				Email:     "Petr@mail.com",

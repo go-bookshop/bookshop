@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"bookshop/internal/models"
 	"bookshop/internal/repository"
 	"errors"
 	"time"
@@ -13,7 +14,7 @@ func NewUserRepository() repository.UserRepositoryInterface {
 type UserRepository struct {
 }
 
-func (r *UserRepository) Insert(u *repository.User) error {
+func (r *UserRepository) Insert(u *models.User) error {
 	switch u.Email {
 	case DuplicateEmail:
 		return repository.ErrDuplicateItem
@@ -28,23 +29,23 @@ func (r *UserRepository) Insert(u *repository.User) error {
 	return nil
 }
 
-func (r *UserRepository) GetByEmail(email string) (*repository.User, error) {
+func (r *UserRepository) GetByEmail(email string) (*models.User, error) {
 	switch email {
 	case PanicEmail:
-		return &repository.User{Email: PanicEmail}, nil
+		return &models.User{Email: PanicEmail}, nil
 	case FailedToSendEmail:
-		return &repository.User{Email: FailedToSendEmail}, nil
+		return &models.User{Email: FailedToSendEmail}, nil
 	case NotFoundEmail:
 		return nil, repository.ErrRecordNotFound
 	case UnexpectedEmail:
 		return nil, errors.New("empty")
 	case ActivatedEmail:
-		return &repository.User{Activated: true}, nil
+		return &models.User{Activated: true}, nil
 	case SimulateFailTokenCreationEmail:
-		return &repository.User{ID: UnexpectedUserId}, nil
+		return &models.User{ID: UnexpectedUserId}, nil
 
 	}
-	return &repository.User{
+	return &models.User{
 		ID:        999,
 		FirstName: "John",
 		LastName:  "Doe",
@@ -55,7 +56,7 @@ func (r *UserRepository) GetByEmail(email string) (*repository.User, error) {
 	}, nil
 }
 
-func (r *UserRepository) Update(u *repository.User) error {
+func (r *UserRepository) Update(u *models.User) error {
 	switch u.Email {
 	case UnexpectedEmail:
 		return errors.New("empty")
@@ -65,18 +66,18 @@ func (r *UserRepository) Update(u *repository.User) error {
 	return nil
 }
 
-func (r *UserRepository) GetByToken(scope, token string) (*repository.User, error) {
+func (r *UserRepository) GetByToken(scope, token string) (*models.User, error) {
 	switch token {
 	case ExpiredToken:
 		return nil, repository.ErrRecordNotFound
 	case SimulateConflictWriteToken:
-		return &repository.User{Email: ConflictEmail}, nil
+		return &models.User{Email: ConflictEmail}, nil
 	case SimulateUnexpectedWriteToken:
-		return &repository.User{Email: UnexpectedEmail}, nil
+		return &models.User{Email: UnexpectedEmail}, nil
 	case SimulateFailToDeleteAllByUserIdToken:
-		return &repository.User{ID: CorruptedUserId}, nil
+		return &models.User{ID: CorruptedUserId}, nil
 	}
-	return &repository.User{
+	return &models.User{
 		ID:        999,
 		FirstName: "John",
 		LastName:  "Doe",
