@@ -1,7 +1,8 @@
-package data
+package repository
 
 import (
 	"bookshop/internal/assert"
+	"bookshop/internal/models"
 	"context"
 	"errors"
 	"testing"
@@ -37,7 +38,7 @@ func (s *CategoryRepoTestSuite) TearDown(t *testing.T) {
 }
 
 func (s *CategoryRepoTestSuite) TestCategoryRepository_Insert(t *testing.T) {
-	category := Category{
+	category := models.Category{
 		Name:        "Epic Adventures",
 		Description: "Explore tales of heroism.",
 	}

@@ -1,28 +1,19 @@
-package data
+package repository
 
 import (
-	"bookshop/internal/validator"
+	"bookshop/internal/models"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
-	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
-)
 
-const (
-	ScopeActivation     = "activation"
-	ScopeAuthentication = "authentication"
-)
-
-const (
-	TokenLength = 26
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type TokenRepositoryInterface interface {
-	New(userID int64, ttl time.Duration, scope string) (*Token, error)
-	Insert(token *Token) error
+	New(userID int64, ttl time.Duration, scope string) (*models.Token, error)
+	Insert(token *models.Token) error
 	DeleteAllByUserID(scope string, userID int64) error
 }
 
@@ -30,16 +21,8 @@ func NewTokenRepository(DBPool *pgxpool.Pool) TokenRepositoryInterface {
 	return &TokenRepository{DBPool: DBPool}
 }
 
-type Token struct {
-	Plaintext string
-	Hash      []byte
-	UserID    int64
-	Expiry    time.Time
-	Scope     string
-}
-
-func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
-	token := &Token{
+func generateToken(userID int64, ttl time.Duration, scope string) (*models.Token, error) {
+	token := &models.Token{
 		UserID: userID,
 		Expiry: time.Now().Add(ttl),
 		Scope:  scope,
@@ -59,16 +42,11 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 	return token, nil
 }
 
-func ValidateTokenPlaintext(v *validator.Validator, token string) {
-	v.Check(token != "", "token", "must be provided")
-	v.Check(len(token) == TokenLength, "token", fmt.Sprintf("must be %d bytes long", TokenLength))
-}
-
 type TokenRepository struct {
 	DBPool *pgxpool.Pool
 }
 
-func (r *TokenRepository) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
+func (r *TokenRepository) New(userID int64, ttl time.Duration, scope string) (*models.Token, error) {
 	token, err := generateToken(userID, ttl, scope)
 	if err != nil {
 		return nil, err
@@ -78,7 +56,7 @@ func (r *TokenRepository) New(userID int64, ttl time.Duration, scope string) (*T
 	return token, err
 }
 
-func (r *TokenRepository) Insert(token *Token) error {
+func (r *TokenRepository) Insert(token *models.Token) error {
 	query := `
 insert into tokens (hash, user_id, expiry, scope)
 values ($1, $2, $3, $4)`

@@ -2,7 +2,7 @@ package main
 
 import (
 	"bookshop/internal/assert"
-	"bookshop/internal/data"
+	"bookshop/internal/models"
 	"fmt"
 	"net/http"
 	"strings"
@@ -62,15 +62,15 @@ func TestCategories_createBooksCategoryHandler(t *testing.T) {
 			name:        "Invalid Category Name Max Length",
 			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    fmt.Sprintf("must be less than %d bytes", data.CategoryNameMaxLength),
-			requestBody: fmt.Sprintf(`{"name":"%s","description":"Explore tales of heroism."}`, strings.Repeat("a", data.CategoryNameMaxLength+1)),
+			wantBody:    fmt.Sprintf("must be less than %d bytes", models.CategoryNameMaxLength),
+			requestBody: fmt.Sprintf(`{"name":"%s","description":"Explore tales of heroism."}`, strings.Repeat("a", models.CategoryNameMaxLength+1)),
 		},
 		{
 			name:        "Invalid Category Description Max Length",
 			endpoint:    "/v1/books/categories",
 			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    fmt.Sprintf("must be less than %d bytes", data.CategoryDescriptionMaxLength),
-			requestBody: fmt.Sprintf(`{"name":"Epic Adventures","description":"%s"}`, strings.Repeat("a", data.CategoryDescriptionMaxLength+1)),
+			wantBody:    fmt.Sprintf("must be less than %d bytes", models.CategoryDescriptionMaxLength),
+			requestBody: fmt.Sprintf(`{"name":"Epic Adventures","description":"%s"}`, strings.Repeat("a", models.CategoryDescriptionMaxLength+1)),
 		},
 		{
 			name:        "Duplicate Category",

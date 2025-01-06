@@ -1,21 +1,22 @@
 package mock
 
 import (
-	"bookshop/internal/data"
+	"bookshop/internal/models"
+	"bookshop/internal/repository"
 	"errors"
 )
 
-func NewCategoryRepository() data.CategoryRepositoryInterface {
+func NewCategoryRepository() repository.CategoryRepositoryInterface {
 	return &CategoryRepository{}
 }
 
 type CategoryRepository struct {
 }
 
-func (r *CategoryRepository) Insert(c *data.Category) error {
+func (r *CategoryRepository) Insert(c *models.Category) error {
 	switch c.Name {
 	case "Duplicate":
-		return data.ErrDuplicateItem
+		return repository.ErrDuplicateItem
 	case "Unexpected":
 		return errors.New("empty")
 	}

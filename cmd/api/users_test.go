@@ -2,8 +2,8 @@ package main
 
 import (
 	"bookshop/internal/assert"
-	"bookshop/internal/data"
 	"bookshop/internal/mock"
+	"bookshop/internal/models"
 	"fmt"
 	"net/http"
 	"strings"
@@ -54,16 +54,16 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			name:        "Too short password",
 			endpoint:    "/v1/users",
 			wantCode:    http.StatusUnprocessableEntity,
-			wantBody:    fmt.Sprintf("must be at least %d bytes long", data.PasswordMinLength),
+			wantBody:    fmt.Sprintf("must be at least %d bytes long", models.PasswordMinLength),
 			requestBody: `{"firstName":"John","lastName":"Doe","email":"doe@mail.com","password":"Pa1#"}`,
 		},
 		{
 			name:     "Too long password",
 			endpoint: "/v1/users",
 			wantCode: http.StatusUnprocessableEntity,
-			wantBody: fmt.Sprintf("must be less than %d bytes", data.PasswordMaxLength),
+			wantBody: fmt.Sprintf("must be less than %d bytes", models.PasswordMaxLength),
 			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":"Doe","email":"doe@mail.com","password":%q}`,
-				strings.Repeat("Pa1#", data.PasswordMaxLength/4+5)),
+				strings.Repeat("Pa1#", models.PasswordMaxLength/4+5)),
 		},
 		{
 			name:        "Empty password",
@@ -118,9 +118,9 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			name:     "Too long FirstName",
 			endpoint: "/v1/users",
 			wantCode: http.StatusUnprocessableEntity,
-			wantBody: fmt.Sprintf("must be less than %d bytes", data.UserFirstNameMaxLength),
+			wantBody: fmt.Sprintf("must be less than %d bytes", models.UserFirstNameMaxLength),
 			requestBody: fmt.Sprintf(`{"firstName":%q,"lastName":"Doe","email":"doe@mail.com","password":"PASSWORDddd123#"}`,
-				strings.Repeat("a", data.UserFirstNameMaxLength+1)),
+				strings.Repeat("a", models.UserFirstNameMaxLength+1)),
 		},
 		{
 			name:        "Empty LastName",
@@ -140,9 +140,9 @@ func TestUsers_registerUserHandler(t *testing.T) {
 			name:     "Too long LastName",
 			endpoint: "/v1/users",
 			wantCode: http.StatusUnprocessableEntity,
-			wantBody: fmt.Sprintf("must be less than %d bytes", data.UserLastNameMaxLength),
+			wantBody: fmt.Sprintf("must be less than %d bytes", models.UserLastNameMaxLength),
 			requestBody: fmt.Sprintf(`{"firstName":"John","lastName":%q,"email":"doe@mail.com","password":"PASSWORDddd123#"}`,
-				strings.Repeat("a", data.UserLastNameMaxLength+1)),
+				strings.Repeat("a", models.UserLastNameMaxLength+1)),
 		},
 		{
 			name:        "Empty Email",

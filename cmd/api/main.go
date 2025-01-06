@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/doc"
 	"bookshop/internal/mailer"
+	"bookshop/internal/repository"
 	"context"
 	"errors"
 	"flag"
@@ -44,7 +44,7 @@ type config struct {
 type application struct {
 	config       config
 	logger       *slog.Logger
-	repositories data.Repositories
+	repositories repository.Repositories
 	mailer       mailer.Mailer
 }
 
@@ -67,7 +67,7 @@ func main() {
 	app := &application{
 		config:       cfg,
 		logger:       logger,
-		repositories: data.NewRepositories(dbpool),
+		repositories: repository.NewRepositories(dbpool),
 		//Using https://mailtrap.io/ for now, this should be changed with real mailer later
 		mailer: mailer.NewMailTrap(cfg.mailer.url, cfg.mailer.token, cfg.mailer.sender),
 	}

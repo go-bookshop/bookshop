@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bookshop/internal/data"
 	"bookshop/internal/httputil"
 	"bookshop/internal/models"
 	"bookshop/internal/validator"
@@ -26,7 +25,7 @@ func (app *application) createAuthorHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	v := validator.New()
-	if data.ValidateAuthor(v, author); !v.Valid() {
+	if models.ValidateAuthor(v, author); !v.Valid() {
 		app.validationErrorResponse(w, r, v.Errors)
 		return
 	}
